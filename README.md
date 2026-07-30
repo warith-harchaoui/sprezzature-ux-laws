@@ -6,7 +6,7 @@
 [![logo](assets/logo.png)](https://harchaoui.org/warith/sprezzature/)
 
 A static **Laws-of-UX** auditor for HTML. It flags the user-experience mistakes that are
-decidable straight from source — no browser, no runtime DOM, no network — so you can run
+decidable straight from source (no browser, no runtime DOM, no network), so you can run
 it in a pre-commit hook or a CI step and get a fast, deterministic gate.
 
 ## Laws covered
@@ -40,7 +40,7 @@ so it drops cleanly into CI.
 ## Honest scope
 
 The auditor catches mechanical, source-decidable violations. It does not judge whether a
-screen answers the right question or whether a flow makes sense — that stays a human call.
+screen answers the right question or whether a flow makes sense. That stays a human call.
 It is a fast gate, not a substitute for design review.
 
 ## License
