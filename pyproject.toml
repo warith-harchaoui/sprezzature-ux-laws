@@ -1,0 +1,32 @@
+[build-system]
+requires = ["setuptools>=77", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "sprezzature-ux-laws"
+version = "1.0.0"
+description = "A static Laws-of-UX auditor for HTML: source-decidable checks for Hick, Miller, Fitts, Jakob, Tesler and more — no browser, no runtime DOM, no network."
+readme = "README.md"
+requires-python = ">=3.10"
+license = {text = "BSD-3-Clause"}
+authors = [{name = "Warith HARCHAOUI", email = "warith.harchaoui@gmail.com"}]
+keywords = ["ux", "usability", "laws-of-ux", "accessibility", "html", "lint", "sprezzature"]
+dependencies = []
+
+[project.optional-dependencies]
+dev = ["pytest>=8.0", "ruff"]
+
+[project.urls]
+Homepage = "https://harchaoui.org/warith/sprezzature/"
+Repository = "https://github.com/warith-harchaoui/sprezzature-ux-laws"
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "UP"]
+ignore = ["E501"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

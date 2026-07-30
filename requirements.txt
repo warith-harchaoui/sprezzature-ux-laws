@@ -1,0 +1,1 @@
+# Core - stdlib only (HTMLParser-based auditor). No runtime dependencies.
