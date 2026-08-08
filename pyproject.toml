@@ -20,9 +20,11 @@ dev = ["pytest>=8.0", "ruff"]
 Homepage = "https://harchaoui.org/warith/sprezzature/"
 Repository = "https://github.com/warith-harchaoui/sprezzature-ux-laws"
 
-[tool.setuptools.packages.find]
-where = ["."]
-include = ["sprezzature_ux_laws*", "scripts*"]
+[tool.setuptools]
+packages = ["sprezzature_ux_laws", "sprezzature_ux_laws_scripts"]
+
+[tool.setuptools.package-dir]
+"sprezzature_ux_laws_scripts" = "scripts"
 
 [tool.ruff]
 line-length = 100
