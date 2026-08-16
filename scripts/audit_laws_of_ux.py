@@ -7,18 +7,19 @@ Static auditor for the canonical *Laws of UX* (Jon Yablonski,
 https://lawsofux.com/) against vanilla-JS + Tailwind HTML emitted by
 the ``sprezzature-ui`` skill.
 
-The script does **not** render the page. It parses HTML with the
-standard library and flags violations that are mechanically detectable
-from the source — the same way ``sprezzature-accessibility``'s static lint flags
-accessibility issues without spinning up a browser. Browser-time
-behaviour (real measured response time, real layout sizes, focus
-trapping under mouse) is out of scope by design.
+The script does **not** render the page: it parses the HTML text with
+the standard library and flags only what is mechanically detectable
+from that text, the same way ``sprezzature-accessibility``'s static
+lint flags accessibility issues without spinning up a browser.
+Anything that only shows up once the page actually renders (real
+measured response time, real layout sizes, focus trapping under a
+mouse) is out of scope by design.
 
 The checks are deliberately conservative. Findings come in two
 severities:
 
-* ``error``   — a confident violation; the build should fail.
-* ``warning`` — heuristic; the maintainer should look but may rule it
+* ``error``: a confident violation; the build should fail.
+* ``warning``: heuristic; the maintainer should look but may rule it
   out as a false positive.
 
 Implemented checks
@@ -81,8 +82,8 @@ Notes
   ``references/checklist.md`` (the broader gate).
 * For runtime checks (real layout, focus trap, dynamic
   ``aria-live`` regions) reach for ``axe-core`` / ``Pa11y`` /
-  ``Lighthouse`` — this script is intentionally a static pre-commit
-  filter.
+  ``Lighthouse``; this script is intentionally a static pre-commit
+  filter, not a replacement for those.
 
 Author
 ------
