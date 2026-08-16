@@ -2,7 +2,7 @@
 
 The design heuristics curated by **Jon Yablonski** at
 [lawsofux.com](https://lawsofux.com/) and in his book *Laws of UX*
-(O'Reilly, 2020 — 2nd ed. 2024). The site currently lists **30 laws**;
+(O'Reilly, 2020; 2nd ed. 2024). The site currently lists **30 laws**;
 this file restates each one in the skill's house format
 (**trigger → action → Tailwind / HTML hook**) so the skill can *act*
 on them. Definitions in quotation marks are verbatim from the source.
@@ -52,9 +52,9 @@ omit).
 | **Miller's Law** | George A. Miller, 1956 | Phone number, code, IBAN rendered as one long run | Chunk into 3–4 groups of 3–4 chars | `+33 6 12 34 56 78`, `XXXX-XXXX-XXXX` |
 | **Working Memory** | Atkinson & Shiffrin, 1968 | User must remember a value from screen N to N+1 | Persist on-screen (sticky summary, breadcrumb with values, review step) | Sticky `<aside>` carrying cart total at every checkout step |
 | **Chunking** | Miller, 1956 | Long settings list with no headings | Group by topic; ≤ 7 items per group; one heading per group | `<section><h2>Account</h2><ul>…</ul></section>` |
-| **Cognitive Load** | John Sweller, 1988 (CLT) | Decorative chrome, repeated icons, drop shadows on every card | Strip; one signal per meaning | Drop the icon if the label is enough |
+| **Cognitive Load** | John Sweller, 1988 (Cognitive Load Theory, CLT) | Decorative chrome, repeated icons, drop shadows on every card | Strip; one signal per meaning | Drop the icon if the label is enough |
 | **Mental Model** | Kenneth Craik, *The Nature of Explanation* (1943) | Action name diverges from what the user expects | Rename to match the convention | "Delete" deletes; "Archive" archives; no euphemisms |
-| **Jakob's Law** | Jakob Nielsen (NN/g) | Custom date picker, custom checkbox that behaves not-quite-natively | Use the native control or a faithful copy of the platform pattern | `<input type="date">`, `<input type="checkbox">`, plain `<nav>` |
+| **Jakob's Law** | Jakob Nielsen (Nielsen Norman Group, NN/g) | Custom date picker, custom checkbox that behaves not-quite-natively | Use the native control or a faithful copy of the platform pattern | `<input type="date">`, `<input type="checkbox">`, plain `<nav>` |
 | **Paradox of the Active User** | Rosson & Carroll, 1987 | Onboarding gated by a manual / multi-screen tutorial | Embed contextual tooltips and let users start immediately | `popover` attribute next to controls; "Show me how" link inline |
 
 ## 4. Time — what the user feels
@@ -177,13 +177,13 @@ For UX the takeaway is narrower than for protocol design:
   Effect"](https://www.nngroup.com/articles/aesthetic-usability-effect/),
   Nielsen Norman Group (Feb 3, 2024).
 - Wikipedia. ["Robustness
-  Principle"](https://en.wikipedia.org/wiki/Robustness_principle) —
+  Principle"](https://en.wikipedia.org/wiki/Robustness_principle);
   includes Rose (2001) and Thomson & Schinazi (RFC 9413, 2023)
   critiques relevant to Postel's Law.
 - Yablonski, Jon. ["Onboarding for Active
   Users"](https://lawsofux.com/articles/2024/onboarding-for-active-users/),
   lawsofux.com (2024). Concrete patterns (Slackbot, Notion templates,
-  in-product tooltips) — load this when the user asks for an
+  in-product tooltips); load this when the user asks for an
   onboarding flow that should not feel like a manual.
 - Yablonski, Jon. ["Design Principles for Reducing Cognitive
   Load"](https://lawsofux.com/articles/2015/design-principles-for-reducing-cognitive-load/),
@@ -196,5 +196,5 @@ For UX the takeaway is narrower than for protocol design:
   lawsofux.com (2018).
 - Yablonski, Jon. ["Familiar vs
   Novel"](https://lawsofux.com/articles/2024/familiar-vs-novel/),
-  lawsofux.com (2024) — companion to Jakob's Law; when *is* novelty
-  appropriate?
+  lawsofux.com (2024); a companion to Jakob's Law, on when novelty
+  is appropriate instead of the familiar pattern.

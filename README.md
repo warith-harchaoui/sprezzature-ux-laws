@@ -5,9 +5,18 @@
 
 [![logo](https://raw.githubusercontent.com/warith-harchaoui/sprezzature-ux-laws/main/assets/logo.png)](https://harchaoui.org/warith/sprezzature/)
 
-A static **Laws-of-UX** auditor for HTML. It flags the user-experience mistakes that are
-decidable straight from source (no browser, no runtime DOM, no network), so you can run
-it in a pre-commit hook or a CI step and get a fast, deterministic gate.
+A static **Laws-of-UX** auditor for HTML.
+
+The "Laws of UX" are named heuristics from psychology and human-computer-interaction
+research: for instance, Hick's Law says that the more choices a screen offers at once,
+the longer a person takes to pick one, so a navigation menu with forty links is
+measurably harder to use than one with seven. This tool cannot see a rendered page or
+watch a real person use it; instead it reads the raw HTML text and flags the mistakes
+that are decidable from that text alone, such as counting the links in a `<nav>`. That
+trade keeps it fast and deterministic enough to run in a pre-commit hook or a CI step,
+at the cost of catching only the fraction of each law's violations that a text scan can
+see (the full, sourced definition of each law lives in
+[`references/laws-of-ux.md`](references/laws-of-ux.md)).
 
 ## Laws covered
 
