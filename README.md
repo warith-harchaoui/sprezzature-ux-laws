@@ -3,6 +3,8 @@
 [![License](https://img.shields.io/badge/license-BSD--3--Clause-blue.svg)](https://github.com/warith-harchaoui/sprezzature-ux-laws/blob/main/LICENSE)
 [![Python](https://img.shields.io/badge/python-3.10%2B-blue.svg)](https://www.python.org/)
 
+[🇫🇷 LISEZMOI.md](https://github.com/warith-harchaoui/sprezzature-ux-laws/blob/main/LISEZMOI.md) · 🇬🇧 README.md
+
 [![logo](https://raw.githubusercontent.com/warith-harchaoui/sprezzature-ux-laws/main/assets/logo.png)](https://harchaoui.org/warith/sprezzature/)
 
 A static **Laws-of-UX** auditor for HTML.
@@ -36,10 +38,10 @@ see (the full, sourced definition of each law lives in
 ```bash
 # Audit a file or a whole directory tree
 python scripts/audit_laws_of_ux.py public/index.html
-python scripts/audit_laws_of_ux.py site/ --format json
+python scripts/audit_laws_of_ux.py site/ --json
 
 # Restrict to specific laws, or auto-fix the mechanical ones
-python scripts/audit_laws_of_ux.py page.html --laws fitts,jakob
+python scripts/audit_laws_of_ux.py page.html --only fitts,jakob
 python scripts/audit_laws_of_ux.py page.html --fix
 ```
 

@@ -1,5 +1,5 @@
 """
-_argparse — shared argparse parser factory for a sprezzature-* skill's scripts.
+_argparse: shared argparse parser factory for a sprezzature-* skill's scripts.
 
 ``make_parser(prog, description, epilog=None)`` returns an
 ``ArgumentParser`` pre-configured the way every script in this skill
@@ -41,7 +41,7 @@ def make_parser(
     description : str
         One-paragraph description shown above the options table.
     epilog : str or None, optional
-        Text shown below the options table — usually usage examples.
+        Text shown below the options table, usually usage examples.
 
     Returns
     -------

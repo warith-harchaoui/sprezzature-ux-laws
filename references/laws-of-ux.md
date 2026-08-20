@@ -1,4 +1,4 @@
-# Laws of UX — canonical set
+# Laws of UX: canonical set
 
 The design heuristics curated by **Jon Yablonski** at
 [lawsofux.com](https://lawsofux.com/) and in his book *Laws of UX*
@@ -24,7 +24,7 @@ omit).
 
 ---
 
-## 1. Perception — what the eye groups (Gestalt heritage)
+## 1. Perception: what the eye groups (Gestalt heritage)
 
 | Law | Origin | Trigger | Action | Hook |
 |---|---|---|---|---|
@@ -35,7 +35,7 @@ omit).
 | **Law of Prägnanz** (simplicity) | Wertheimer, 1910 | Composition with five overlapping rectangles conveying one idea | Reduce to the simplest figure the eye can parse | Drop decorative SVGs; keep one icon per row |
 | **Selective Attention** | Broadbent 1958, Cherry 1953, Treisman 1960 | Critical state hidden in colour alone (red badge, dot) | Add a second channel: icon **and** label, motion **and** colour | `<span class="text-red-700"><AlertIcon /> Failed</span>` not a red dot alone |
 
-## 2. Decision — what the user picks
+## 2. Decision: what the user picks
 
 | Law | Origin | Trigger | Action | Hook |
 |---|---|---|---|---|
@@ -45,7 +45,7 @@ omit).
 | **Pareto Principle** | Vilfredo Pareto (early 20c.) | Roadmap weighted by feature count, not impact | Identify the 20 % of paths handling 80 % of traffic; ship those first | Telemetry tag on top-5 paths; deprioritise the long tail |
 | **Cognitive Bias** | Tversky & Kahneman, 1972 | Designer assumes "users will…" with no evidence | Test with ≥ 5 outside users; seek contradictory data | Usability log per release; written confirmation-bias check |
 
-## 3. Memory & cognition — what the user can hold
+## 3. Memory & cognition: what the user can hold
 
 | Law | Origin | Trigger | Action | Hook |
 |---|---|---|---|---|
@@ -57,7 +57,7 @@ omit).
 | **Jakob's Law** | Jakob Nielsen (Nielsen Norman Group, NN/g) | Custom date picker, custom checkbox that behaves not-quite-natively | Use the native control or a faithful copy of the platform pattern | `<input type="date">`, `<input type="checkbox">`, plain `<nav>` |
 | **Paradox of the Active User** | Rosson & Carroll, 1987 | Onboarding gated by a manual / multi-screen tutorial | Embed contextual tooltips and let users start immediately | `popover` attribute next to controls; "Show me how" link inline |
 
-## 4. Time — what the user feels
+## 4. Time: what the user feels
 
 | Law | Origin | Trigger | Action | Hook |
 |---|---|---|---|---|
@@ -152,17 +152,17 @@ For UX the takeaway is narrower than for protocol design:
 
 ## See also
 
-- `../scripts/audit_laws_of_ux.py` — static auditor that flags the
+- `../scripts/audit_laws_of_ux.py`: static auditor that flags the
   most mechanically-detectable violations (Hick, Miller, Fitts,
   Jakob, Tesler, Aesthetic-Usability, Doherty).
-- Companion skill **`sprezzature-ui`** — broader generation skill with its
+- Companion skill **`sprezzature-ui`**: broader generation skill with its
   own `ux-psychology.md` (cognitive-step-ordered, overlapping with
   this set), `anti-patterns.md` (weaponised-principle refusal
   targets), `ergonomics-criteria.md` (eight criteria for an
   ergonomic audit), and `ui-guidelines/foundations/accessibility.md`
   (the accessibility floor on top of which these laws build).
-- Companion skill **`sprezzature-accessibility`** — static accessibility lint that
-  catches Selective-Attention violations from a different angle
+- Companion skill **`sprezzature-accessibility`**: static accessibility lint
+  that catches Selective-Attention violations from a different angle
   (color-only state, missing alt, unlabelled inputs).
 
 ## Further reading (cited)

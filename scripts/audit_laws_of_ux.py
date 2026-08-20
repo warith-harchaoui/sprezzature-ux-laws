@@ -62,7 +62,7 @@ Usage
     # Restrict to a subset of laws
     python scripts/audit_laws_of_ux.py --only hick,miller,jakob src/
 
-    # AUTO-FIX MODE — apply mechanical fixes in place
+    # AUTO-FIX MODE: apply mechanical fixes in place
     python scripts/audit_laws_of_ux.py --fix path/to/page.html
     #   Fitts                → adds ``min-h-11`` to the element's class list
     #   Aesthetic-Usability  → adds ``focus-visible:ring-2 …`` tokens
@@ -72,7 +72,7 @@ Usage
     # Hick / Choice-Overload / Tesler / Selective-Attention have no
     # fixer because they need a design decision, not a text edit.
 
-    # PREVIEW MODE — show what --fix would change without writing
+    # PREVIEW MODE: show what --fix would change without writing
     python scripts/audit_laws_of_ux.py --fix --dry-run path/to/page.html
 
 Notes
@@ -264,26 +264,37 @@ class Walker(HTMLParser):
             parent=parent,
         )
         self.elements.append(elem)
-        # Void tags do not push onto the stack — they have no children.
+        # Void tags do not push onto the stack: they have no children.
         if tag not in {
             "img", "br", "hr", "input", "meta", "link", "source", "area",
         }:
             self._stack.append(len(self.elements) - 1)
 
     def handle_endtag(self, tag: str) -> None:
-        # HTML in the wild is messy; only pop if the top matches.
-        """Record a closing tag for structural (nesting / heading) checks."""
-        while self._stack:
-            top: int = self._stack[-1]
-            if self.elements[top].tag == tag:
-                self._stack.pop()
+        """Record a closing tag for structural (nesting / heading) checks.
+
+        HTML in the wild is messy: a stray end tag with no matching
+        opener anywhere on the stack is common (leftover markup from a
+        refactor, a template artifact). Search for the match without
+        mutating the stack first; only pop once a match is confirmed, up
+        to and including it. A stray tag that matches nothing is
+        ignored, exactly as a browser would, rather than unwinding every
+        element still open. Popping unconditionally on a miss (the
+        previous behaviour here) silently emptied the whole ancestor
+        chain, which corrupted every later ancestor-based check (Hick's
+        nav counting, the Jakob label-wrapped-control exemption) for the
+        rest of the file.
+        """
+        for depth, idx in enumerate(reversed(self._stack)):
+            if self.elements[idx].tag == tag:
+                del self._stack[len(self._stack) - depth - 1 :]
                 return
-            self._stack.pop()
+        # No matching opener anywhere on the stack: ignore the stray tag.
 
     def handle_startendtag(
         self, tag: str, attrs: list[tuple[str, str | None]]
     ) -> None:
-        # Self-closing form (``<input … />``) — same as start but no push.
+        # Self-closing form (``<input … />``): same as start but no push.
         """Record a self-closing tag (e.g. ``<img/>``, ``<input/>``)."""
         parent: int = self._stack[-1] if self._stack else -1
         line, _ = self.getpos()
@@ -338,7 +349,7 @@ def _ancestors(walker: Walker, idx: int) -> Iterable[Element]:
     Yields
     ------
     Element
-        Each ancestor up the tree (root excluded — the document has no
+        Each ancestor up the tree (root excluded, the document has no
         parent element).
     """
     cur: int = walker.elements[idx].parent
@@ -392,13 +403,13 @@ def _ancestor_indices(walker: Walker, idx: int) -> list[int]:
 
 def check_hick(walker: Walker, path: str) -> list[Finding]:
     """
-    Hick's Law — no single ``<nav>`` should expose > 7 top-level choices.
+    Hick's Law: no single ``<nav>`` should expose > 7 top-level choices.
 
     "Top-level" means a direct ``<a>`` or ``<button>`` whose nearest
     ``<nav>`` ancestor is *this* nav (so the two navs in a page are
     counted independently), and which is **not** wrapped by a closer
     grouping container that already collapses several controls into
-    one logical choice — ``<details>``, ``<dialog>``, ``<menu>``,
+    one logical choice: ``<details>``, ``<dialog>``, ``<menu>``,
     or an element with ``role`` in
     {``radiogroup``, ``tablist``, ``menubar``, ``listbox``,
     ``combobox``}.
@@ -444,7 +455,7 @@ def check_hick(walker: Walker, path: str) -> list[Finding]:
             if nav_idx != idx:
                 continue
             # Walk up from child to this nav; stop at the first grouping
-            # container we find — that container is the unit of choice.
+            # container we find; that container is the unit of choice.
             grouped_under: int | None = None
             for k in chain:
                 if k == idx:
@@ -479,7 +490,8 @@ def check_hick(walker: Walker, path: str) -> list[Finding]:
 
 def check_choice_overload(walker: Walker, path: str) -> list[Finding]:
     """
-    Choice Overload — pricing-grid heuristic: > 4 column-like children.
+    Choice Overload: a pricing-grid heuristic triggering on more than four
+    column-like children.
 
     Triggers on a ``<section>`` or ``<div>`` whose class list contains
     one of ``pricing`` / ``plans`` **and** ``grid`` / ``flex``, and
@@ -517,7 +529,7 @@ def check_choice_overload(walker: Walker, path: str) -> list[Finding]:
 
 def check_miller(path: str, lines: list[str]) -> list[Finding]:
     """
-    Miller's Law — flag visible alphanumeric runs of ≥ 8 characters.
+    Miller's Law: flag visible alphanumeric runs of ≥ 8 characters.
 
     Scans only the visible text of the file (lines outside ``<script>``
     / ``<style>`` blocks). False positives on hashed CSS class names
@@ -546,7 +558,7 @@ def check_miller(path: str, lines: list[str]) -> list[Finding]:
         for m in RE_LONG_RUN.finditer(visible):
             run: str = m.group(0)
             # Miller's chunking advice targets codes / IDs / phone
-            # numbers — all of which contain at least one digit. Pure
+            # numbers, all of which contain at least one digit. Pure
             # alphabetic runs are either ordinary English
             # (collaborators, implementation, configuration) or
             # technical jargon that does not benefit from 3–4-char
@@ -571,7 +583,7 @@ def check_miller(path: str, lines: list[str]) -> list[Finding]:
 
 def check_jakob(walker: Walker, path: str) -> list[Finding]:
     """
-    Jakob's Law — refuse clickable ``<div>`` / ``<span>``.
+    Jakob's Law: refuse clickable ``<div>`` / ``<span>``.
 
     Triggers when a ``<div>`` or ``<span>`` has ``onclick=``,
     ``role="button"``, or ``cursor-pointer`` in its class list and is
@@ -597,7 +609,7 @@ def check_jakob(walker: Walker, path: str) -> list[Finding]:
             continue
         # Allow the visual skin of a real control: a styled <span>/<div> inside
         # a <label> that holds an <input>/<select>/<textarea> (the accessible
-        # segmented-control / custom-checkbox pattern — the form control carries
+        # segmented-control / custom-checkbox pattern: the form control carries
         # the semantics and keyboard behaviour; the span is only its paint).
         anc: int = elem.parent
         in_labelled_control = False
@@ -620,7 +632,7 @@ def check_jakob(walker: Walker, path: str) -> list[Finding]:
                 line=elem.line,
                 message=(
                     f"<{elem.tag}> acts as a button. Use a real <button> "
-                    f"or <a href> — native focus, Enter/Space, screen-reader role."
+                    f"or <a href>: native focus, Enter/Space, screen-reader role."
                 ),
             )
         )
@@ -629,7 +641,7 @@ def check_jakob(walker: Walker, path: str) -> list[Finding]:
 
 def check_fitts(walker: Walker, path: str) -> list[Finding]:
     """
-    Fitts's Law — interactive controls need ≥ 44 px hit area.
+    Fitts's Law: interactive controls need ≥ 44 px hit area.
 
     The skill's Tailwind size scale uses ``h-11`` / ``min-h-11`` for
     44 px. The check warns when an interactive element has no
@@ -643,7 +655,7 @@ def check_fitts(walker: Walker, path: str) -> list[Finding]:
         # ``<input type="hidden">`` is not interactive.
         if elem.tag == "input" and elem.attrs.get("type", "").lower() == "hidden":
             continue
-        # Skip ``<a>`` inside ``<p>`` / ``<li>`` — they're text links, not buttons.
+        # Skip ``<a>`` inside ``<p>`` / ``<li>``: they're text links, not buttons.
         cls: list[str] = _classes(elem)
         if elem.tag == "a" and not any(
             c in cls
@@ -672,23 +684,20 @@ def check_fitts(walker: Walker, path: str) -> list[Finding]:
 
 def check_aesthetic_usability(walker: Walker, path: str) -> list[Finding]:
     """
-    Aesthetic-Usability — every interactive control needs a focus ring.
+    Aesthetic-Usability: every interactive control needs a focus ring.
 
     The skill's house token is ``focus-visible:ring-2``. The check
     warns when an interactive element has neither
     ``focus-visible:ring-*`` nor ``focus:ring-*`` in its class list.
     Elements that explicitly opt out via ``focus:outline-none`` *and*
-    have no ring still fail — the ring is the replacement.
+    have no ring still fail: the ring is the replacement.
     """
     out: list[Finding] = []
     for elem in walker.elements:
         if elem.tag not in INTERACTIVE_TAGS:
             continue
-        if elem.tag == "input" and elem.attrs.get("type", "").lower() in {"hidden", "submit"}:
-            # ``<input type=submit>`` typically renders as the form's
-            # default; we accept it. Real submit buttons should be ``<button>``.
-            if elem.attrs.get("type", "").lower() == "hidden":
-                continue
+        if elem.tag == "input" and elem.attrs.get("type", "").lower() == "hidden":
+            continue
         cls_join: str = " ".join(_classes(elem))
         if RE_TW_FOCUS_RING.search(cls_join):
             continue
@@ -709,7 +718,7 @@ def check_aesthetic_usability(walker: Walker, path: str) -> list[Finding]:
 
 def check_selective_attention(walker: Walker, path: str) -> list[Finding]:
     """
-    Selective Attention — colour alone is not a status channel.
+    Selective Attention: colour alone is not a status channel.
 
     Flags a ``<span>`` whose only class signal is a Tailwind status
     colour (``text-red-*``, ``text-green-*``, …) and whose visible
@@ -752,11 +761,11 @@ def check_selective_attention(walker: Walker, path: str) -> list[Finding]:
 
 def check_tesler(path: str, lines: list[str]) -> list[Finding]:
     """
-    Tesler's Law — time strings should carry a timezone.
+    Tesler's Law: time strings should carry a timezone.
 
     For every ``HH:MM`` match, look at a ~40-char window on each side
     for a timezone token (``UTC``, ``+02:00``, ``Europe/Paris``, …).
-    Misses warn — the user might be displaying a duration, in which
+    Misses warn: the user might be displaying a duration, in which
     case the warning is a false positive and can be silenced with
     ``--ignore tesler``.
     """
@@ -842,7 +851,7 @@ def _insert_class_tokens(line: str, tokens: list[str]) -> tuple[str, bool]:
     -------
     (str, bool)
         ``(new_line, mutated)``. When no ``class="…"`` is found, the
-        line is returned unchanged and ``mutated`` is ``False`` — the
+        line is returned unchanged and ``mutated`` is ``False``; the
         caller is expected to surface this as a fix-not-applied warning.
     """
     # Match either single- or double-quoted attribute values. Capture
@@ -924,16 +933,19 @@ def _fix_jakob(lines: list[str], finding: Finding) -> bool:
     """
     Rewrite a clickable ``<div>`` / ``<span>`` to a real ``<button>``.
 
-    Conservative — only handles the single-line case. Multi-line
-    elements are left for the maintainer; running the auditor again
-    after the fix will still flag them, which is the right behaviour.
+    Conservative: only handles the single-line case, and only the first
+    ``<div>`` or ``<span>`` found on that line. Multi-line elements, and
+    a second offending element sharing the line with the one actually
+    flagged, are left for the maintainer; running the auditor again
+    after the fix will still flag whatever is left, which is the right
+    behaviour.
     """
     idx: int = finding.line - 1
     if not (0 <= idx < len(lines)):
         return False
     line: str = lines[idx]
     for src_tag in ("div", "span"):
-        # Track whether either path opened a tag rewrite — if so we
+        # Track whether either path opened a tag rewrite: if so we
         # need to rewrite the matching close tag on the same line.
         opened: bool = False
         # Path A: strip ``role="button"`` and rename the tag in one
@@ -957,6 +969,13 @@ def _fix_jakob(lines: list[str], finding: Finding) -> bool:
         # keep the surgery local to the flagged element.
         if opened and re.search(rf"</{src_tag}>", line):
             line = re.sub(rf"</{src_tag}>", "</button>", line, count=1)
+        # Stop once one tag type has been rewritten: trying the other
+        # src_tag against the now-mutated line risked rewriting an
+        # unrelated <span> elsewhere on the same line after a <div> was
+        # already fixed (or vice versa), which is not the element this
+        # finding was about.
+        if opened:
+            break
     if line == lines[idx]:
         return False
     lines[idx] = line
@@ -965,7 +984,7 @@ def _fix_jakob(lines: list[str], finding: Finding) -> bool:
 
 #: Map of law → fixer. Laws absent from this map are reported but
 #: cannot be auto-fixed (Tesler, Selective-Attention, Choice-Overload,
-#: Hick — these need design decisions, not text edits).
+#: Hick): these need design decisions, not text edits.
 LAW_FIXERS: dict[str, Callable[..., Any]] = {
     "fitts": _fix_fitts,
     "aesthetic-usability": _fix_aesthetic_usability,
@@ -978,7 +997,7 @@ LAW_FIXERS: dict[str, Callable[..., Any]] = {
 #: shapes (a fixer that re-introduces another finding) would otherwise
 #: loop forever; 5 covers every realistic case (Jakob rewriting <div>
 #: → <button> introduces Fitts + AU, which then fix in the next pass,
-#: and so on — at most three rounds in practice).
+#: and so on, at most three rounds in practice).
 MAX_FIX_ITERATIONS: int = 5
 
 
@@ -1007,14 +1026,14 @@ def fix_file(
         Subset of :data:`LAW_REGISTRY` keys to operate on. Laws not
         present in :data:`LAW_FIXERS` are skipped silently.
     dry_run : bool, default False
-        If ``True``, never write to disk — just report what *would*
+        If ``True``, never write to disk: just report what *would*
         be applied based on a single audit pass against the original
         content.
 
     Returns
     -------
     (int, int, list of Finding)
-        ``(applied, skipped, remaining)`` — total edits across all
+        ``(applied, skipped, remaining)``: total edits across all
         iterations, count of findings for which no fixer exists
         (counted once on the first pass), and the residual findings
         observed after the final write.
@@ -1058,8 +1077,8 @@ def fix_file(
             if fixer(bare_lines, f):
                 round_applied += 1
         applied += round_applied
-        # Only count "unfixable" findings once (the first time round)
-        # — subsequent iterations re-see the same Hick/Tesler/etc.
+        # Only count "unfixable" findings once, the first time round:
+        # subsequent iterations re-see the same Hick/Tesler/etc.
         if not skipped_seen:
             skipped = round_skipped
             skipped_seen = True
@@ -1155,7 +1174,7 @@ def format_text(findings: list[Finding]) -> str:
 
 
 def format_json(findings: list[Finding]) -> str:
-    """Render findings as a JSON array — one object per finding."""
+    """Render findings as a JSON array: one object per finding."""
     payload: list[dict[str, str | int]] = [
         {
             "law": f.law,
@@ -1226,7 +1245,7 @@ def main(argv: list[str] | None = None) -> int:
             "a fixer (Fitts adds min-h-11; Aesthetic-Usability adds "
             "focus-visible:ring-2; Miller chunks long digit runs with "
             "NBSP; Jakob rewrites a clickable <div>/<span> to a real "
-            "<button>). Idempotent — running again on a fixed file "
+            "<button>). Idempotent: running again on a fixed file "
             "performs zero edits. Combine with --dry-run to preview."
         ),
     )
@@ -1288,7 +1307,7 @@ def main(argv: list[str] | None = None) -> int:
             else format_text(total_remaining)
         )
         sys.stdout.write(out)
-        # Dry-run is a preview, not a verdict — always exit 0 so the
+        # Dry-run is a preview, not a verdict: always exit 0 so the
         # user can pipe it without failing their pre-commit hook.
         # Live --fix follows the same exit-code policy as audit mode.
         if args.dry_run:
