@@ -102,7 +102,8 @@ from html.parser import HTMLParser
 from pathlib import Path
 from typing import Any
 
-from _argparse import make_parser
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from _argparse import make_parser  # noqa: E402
 
 # ── Domain types ───────────────────────────────────────────────────────────
 
