@@ -148,9 +148,18 @@ RE_LONG_RUN: re.Pattern[str] = re.compile(r"[A-Za-z0-9]{8,}")
 RE_TIME_STAMP: re.Pattern[str] = re.compile(r"\b\d{1,2}:\d{2}(?::\d{2})?\b")
 
 #: Regex of timezone tokens that suppress a Tesler warning when found near
-#: a ``HH:MM`` match.
+#: a ``HH:MM`` match. The bare ``\bZ\b`` alternative misses the common
+#: compact ISO-8601 form ``12:34Z`` (Zulu time glued straight onto the
+#: minutes, e.g. ``\d{2}:\d{2}(?::\d{2})?Z``): ``\b`` never fires between
+#: two word characters, and a digit and ``Z`` are both word characters, so
+#: no boundary exists between them. The lookbehind alternative
+#: ``(?<=\d)Z\b`` covers exactly that case without weakening the original
+#: ``\bZ\b`` match (space-separated ``12:34 Z``) or over-matching ordinary
+#: words ending in ``Z`` (``AZ``, ``XZ99``), since it still requires a
+#: digit immediately before the ``Z``.
 RE_TZ_TOKEN: re.Pattern[str] = re.compile(
-    r"\b(?:UTC|GMT|CET|CEST|EST|EDT|PST|PDT|JST|Z)\b|[+-]\d{1,2}:?\d{0,2}|"
+    r"\b(?:UTC|GMT|CET|CEST|EST|EDT|PST|PDT|JST|Z)\b|(?<=\d)Z\b|"
+    r"[+-]\d{1,2}:?\d{0,2}|"
     r"[A-Z][a-z]+/[A-Z][a-z_]+"
 )
 
