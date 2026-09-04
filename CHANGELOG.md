@@ -2,6 +2,33 @@
 
 All notable changes to sprezzature-ux-laws are documented here.
 
+## [Unreleased] - 2026-09-04
+
+### Fixed
+
+- `fix_file`: the live `--fix` and `--dry-run` summary line ("N unfixable
+  finding(s)") only counted findings whose law has no fixer registered
+  at all (Hick, Choice overload, Tesler). A finding whose law *does*
+  have a fixer, but whose specific instance the fixer declines to touch
+  (Fitts/Aesthetic-Usability on an element with no `class="..."`
+  attribute for `_insert_class_tokens` to extend), was counted as
+  neither applied nor skipped: the printed "unfixable" count silently
+  undercounted what still needed a human, even though the honest
+  `remaining` count right after it was always correct. Both `fix_file`
+  code paths now count a declining fixer call as skipped too, matching
+  `_insert_class_tokens`'s own documented contract. New regression test:
+  `test_fix_mode_counts_declined_fixer_as_skipped`.
+
+### Added (retroactive changelog entry for prior, already-committed work)
+
+- `RE_TZ_TOKEN` missed compact ISO-8601 timestamps like `12:34Z` (no
+  word boundary exists between a digit and a letter, so `\bZ\b` never
+  matched); added `(?<=\d)Z\b` as an extra alternative. Added tests for
+  the 5 laws that previously had zero test coverage (Hick, Miller,
+  Choice overload, Selective attention, Tesler) and for `--fix` mode.
+  Committed as `5805266` on 2026-09-02; this entry was missing from the
+  changelog until now.
+
 ## [Unreleased] - 2026-08-20
 
 ### Fixed
