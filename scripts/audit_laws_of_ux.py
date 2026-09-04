@@ -1044,9 +1044,13 @@ def fix_file(
     -------
     (int, int, list of Finding)
         ``(applied, skipped, remaining)``: total edits across all
-        iterations, count of findings for which no fixer exists
-        (counted once on the first pass), and the residual findings
-        observed after the final write.
+        iterations; count of findings that a fixer could not resolve,
+        counted once on the first pass, whether because no fixer is
+        registered for the law at all (Hick, Choice overload) or because
+        the registered fixer declined for that specific instance (e.g.
+        aesthetic-usability/Fitts on an element with no ``class="..."``
+        attribute for :func:`_insert_class_tokens` to extend); and the
+        residual findings observed after the final write.
     """
     raw: str = path.read_text(encoding="utf-8", errors="replace")
     bare_lines: list[str] = raw.splitlines()
@@ -1061,10 +1065,15 @@ def fix_file(
             if fixer is None:
                 skipped += 1
                 continue
-            # Apply against an in-memory copy to count, then discard.
+            # Apply against an in-memory copy to count, then discard. A
+            # registered fixer can still decline (e.g. no class="..."
+            # attribute for _insert_class_tokens to extend): that counts
+            # as skipped too, not silently as neither applied nor skipped.
             shadow: list[str] = bare_lines[:]
             if fixer(shadow, f):
                 applied += 1
+            else:
+                skipped += 1
         return applied, skipped, findings
 
     # Live fix loop. Re-audit after each round so fixers that create
@@ -1084,8 +1093,15 @@ def fix_file(
             if fixer is None:
                 round_skipped += 1
                 continue
+            # A registered fixer can still decline for this specific
+            # instance (e.g. aesthetic-usability/Fitts on an element with
+            # no class="..." attribute to extend): count that as skipped
+            # too, so the printed summary does not undercount what still
+            # needs a human, as it silently did before.
             if fixer(bare_lines, f):
                 round_applied += 1
+            else:
+                round_skipped += 1
         applied += round_applied
         # Only count "unfixable" findings once, the first time round:
         # subsequent iterations re-see the same Hick/Tesler/etc.

@@ -373,3 +373,40 @@ def test_fix_mode_reports_unfixable_findings_as_skipped(tmp_path: Path) -> None:
     assert applied == 0
     assert skipped == 1
     assert any(f.law == "hick" for f in remaining)
+
+
+def test_fix_mode_counts_declined_fixer_as_skipped(tmp_path: Path) -> None:
+    """A registered fixer that declines still counts as skipped, not lost.
+
+    ``_insert_class_tokens`` (used by both the Fitts and Aesthetic-
+    Usability fixers) can only add tokens to an existing ``class="..."``
+    attribute; a link with no ``class`` attribute at all leaves the
+    fixer with nothing to extend, so it returns ``mutated=False``. Before
+    this test's regression, that case was neither counted as applied nor
+    as skipped: the CLI's printed "N unfixable finding(s)" undercounted
+    what still needed a human, even though the finding correctly stayed
+    in ``remaining`` for CI to catch. Live and dry-run must agree.
+    """
+    from audit_laws_of_ux import fix_file
+
+    page = tmp_path / "noclass.html"
+    page.write_text(
+        '<!DOCTYPE html><html><body><a href="/one">One</a></body></html>',
+        encoding="utf-8",
+    )
+    applied, skipped, remaining = fix_file(page, {"aesthetic-usability"})
+    assert applied == 0
+    assert skipped == 1
+    assert any(f.law == "aesthetic-usability" for f in remaining)
+
+    page_dry = tmp_path / "noclass_dry.html"
+    page_dry.write_text(
+        '<!DOCTYPE html><html><body><a href="/one">One</a></body></html>',
+        encoding="utf-8",
+    )
+    applied_dry, skipped_dry, remaining_dry = fix_file(
+        page_dry, {"aesthetic-usability"}, dry_run=True
+    )
+    assert applied_dry == 0
+    assert skipped_dry == 1
+    assert any(f.law == "aesthetic-usability" for f in remaining_dry)
