@@ -63,5 +63,5 @@ rapide, pas un substitut à une revue de design.
 
 ## Licence
 
-BSD-3-Clause © Warith Harchaoui. Fait partie de la boîte à outils
+BSD-3-Clause © Warith HARCHAOUI. Fait partie de la boîte à outils
 [sprezzature](https://harchaoui.org/warith/sprezzature/).

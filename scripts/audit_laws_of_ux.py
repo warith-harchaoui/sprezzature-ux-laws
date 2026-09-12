@@ -3,7 +3,7 @@
 audit_laws_of_ux
 ================
 
-Static auditor for the canonical *Laws of UX* (Jon Yablonski,
+Static auditor for the canonical *Laws of UX* (Jon YABLONSKI,
 https://lawsofux.com/) against vanilla-JS + Tailwind HTML emitted by
 the ``sprezzature-ui`` skill.
 
@@ -87,7 +87,7 @@ Notes
 
 Author
 ------
-`Warith Harchaoui, Ph.D. <https://www.linkedin.com/in/warith-harchaoui/>`_
+`Warith HARCHAOUI, Ph.D. <https://www.linkedin.com/in/warith-harchaoui/>`_
 """
 
 from __future__ import annotations
@@ -1270,7 +1270,7 @@ def main(argv: list[str] | None = None) -> int:
         prog="sprezzature-ux-laws-audit",
         description=(
             "Static auditor for the canonical Laws of UX "
-            "(Jon Yablonski, lawsofux.com) against sprezzature-ui output."
+            "(Jon YABLONSKI, lawsofux.com) against sprezzature-ui output."
         ),
     )
     parser.add_argument(

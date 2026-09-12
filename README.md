@@ -56,4 +56,4 @@ It is a fast gate, not a substitute for design review.
 
 ## License
 
-BSD-3-Clause © Warith Harchaoui. Part of the [sprezzature](https://harchaoui.org/warith/sprezzature/) toolkit.
+BSD-3-Clause © Warith HARCHAOUI. Part of the [sprezzature](https://harchaoui.org/warith/sprezzature/) toolkit.

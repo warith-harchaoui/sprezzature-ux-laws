@@ -70,7 +70,7 @@ All notable changes to sprezzature-ux-laws are documented here.
   `--dry-run` modes. Auto-fixers for Fitts, Aesthetic-Usability, Miller,
   and Jakob; idempotent by design.
 - `scripts/_argparse.py`: shared argparse parser factory.
-- `references/laws-of-ux.md`: sourced restatement of Jon Yablonski's
+- `references/laws-of-ux.md`: sourced restatement of Jon YABLONSKI's
   canonical Laws of UX set, in the skill's trigger, action, and
   Tailwind/HTML hook format.
 - `sprezzature_ux_laws/__init__.py`: package metadata.

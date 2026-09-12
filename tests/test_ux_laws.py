@@ -15,7 +15,7 @@ def test_package_imports() -> None:
     import sprezzature_ux_laws
 
     assert sprezzature_ux_laws.__version__ == "1.0.0"
-    assert sprezzature_ux_laws.__author__ == "Warith Harchaoui"
+    assert sprezzature_ux_laws.__author__ == "Warith HARCHAOUI"
 
 
 def test_law_registry_keys() -> None:
