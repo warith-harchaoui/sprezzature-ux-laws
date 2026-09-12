@@ -1119,9 +1119,62 @@ def fix_file(
     return applied, skipped, remaining
 
 
+def audit_html(
+    raw: str,
+    laws: "set[str] | None" = None,
+    label: str = "<string>",
+) -> list[Finding]:
+    """
+    Run every requested law check against a string of HTML.
+
+    The real implementation; :func:`audit_file` reads a file and calls this.
+    Split out so the HTTP and MCP surfaces can audit markup that never
+    touches disk — a caller posting a component fragment should not have to
+    invent a temporary file, and a second copy of the registry loop would be
+    free to drift from this one.
+
+    Parameters
+    ----------
+    raw : str
+        HTML source. A fragment is fine.
+    laws : set of str, optional
+        Subset of :data:`LAW_REGISTRY` keys to run. ``None`` runs them all.
+    label : str, optional
+        What to record as the finding's ``path``. Only ever a label here,
+        since there is no file.
+
+    Returns
+    -------
+    list of Finding
+        All findings, in registry order.
+
+    Examples
+    --------
+    >>> findings = audit_html("<button>Go</button>")
+    >>> all(f.law in LAW_REGISTRY for f in findings)
+    True
+    """
+    laws = set(LAW_REGISTRY) if laws is None else laws
+    walker: Walker = Walker()
+    walker.feed(raw)
+    walker.close()
+    lines: list[str] = raw.splitlines()
+    findings: list[Finding] = []
+    for law, (walker_fn, text_fn) in LAW_REGISTRY.items():
+        if law not in laws:
+            continue
+        if walker_fn is not None:
+            findings.extend(walker_fn(walker, label))
+        if text_fn is not None:
+            findings.extend(text_fn(label, lines))
+    return findings
+
+
 def audit_file(path: Path, laws: set[str]) -> list[Finding]:
     """
     Run every requested law check against one HTML file.
+
+    Thin wrapper over :func:`audit_html`: reads the file, audits the text.
 
     Parameters
     ----------
@@ -1135,21 +1188,9 @@ def audit_file(path: Path, laws: set[str]) -> list[Finding]:
     list of Finding
         All findings, in registry order.
     """
-    raw: str = path.read_text(encoding="utf-8", errors="replace")
-    walker: Walker = Walker()
-    walker.feed(raw)
-    walker.close()
-    lines: list[str] = raw.splitlines()
-    findings: list[Finding] = []
-    rel: str = str(path)
-    for law, (walker_fn, text_fn) in LAW_REGISTRY.items():
-        if law not in laws:
-            continue
-        if walker_fn is not None:
-            findings.extend(walker_fn(walker, rel))
-        if text_fn is not None:
-            findings.extend(text_fn(rel, lines))
-    return findings
+    return audit_html(
+        path.read_text(encoding="utf-8", errors="replace"), laws, str(path)
+    )
 
 
 def discover(targets: list[Path]) -> list[Path]:

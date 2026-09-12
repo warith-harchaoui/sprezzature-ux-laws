@@ -16,6 +16,20 @@ dependencies = []
 [project.optional-dependencies]
 dev = ["pytest>=8.0", "ruff"]
 
+# HTTP surface (sprezzature_ux_laws/api.py): the auditor over HTTP, so a
+# design review or CI job in any language can run the same checks.
+api = [
+    "fastapi>=0.115",
+    "uvicorn[standard]>=0.30",
+]
+# MCP surface: the same routes republished as agent tools, via fastapi-mcp.
+mcp = [
+    "sprezzature-ux-laws[api]",
+    "fastapi-mcp>=0.3",
+]
+[project.scripts]
+sprezzature-ux-laws-mcp = "sprezzature_ux_laws.mcp:main"
+
 [project.urls]
 Homepage = "https://harchaoui.org/warith/sprezzature/"
 Repository = "https://github.com/warith-harchaoui/sprezzature-ux-laws"
