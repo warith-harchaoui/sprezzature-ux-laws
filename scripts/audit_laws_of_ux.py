@@ -1121,7 +1121,7 @@ def fix_file(
 
 def audit_html(
     raw: str,
-    laws: "set[str] | None" = None,
+    laws: set[str] | None = None,
     label: str = "<string>",
 ) -> list[Finding]:
     """

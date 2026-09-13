@@ -113,10 +113,17 @@ class AuditRequest(BaseModel):
     )
 
 
-@app.get("/health", tags=["meta"], operation_id="health")
+@app.get(
+    "/health",
+    tags=["meta"],
+    operation_id="health",
+    summary="Check that this UX-audit server is up",
+)
 def health() -> dict:
     """
     Liveness probe — no dependency check, just proves the app is up.
+
+    Call this only to diagnose a connection problem.
 
     Returns
     -------
@@ -126,10 +133,21 @@ def health() -> dict:
     return {"status": "ok"}
 
 
-@app.get("/v1/laws", tags=["meta"], operation_id="list_laws")
+@app.get(
+    "/v1/laws",
+    tags=["meta"],
+    operation_id="list_laws",
+    summary="List the UX laws this auditor can check",
+)
 def laws() -> dict:
     """
     The eight laws, each with a one-line note on what it checks.
+
+    Call this to answer "which laws do you know", and before narrowing
+    `audit_interface` to a subset -- a law id that does not exist selects
+    nothing, so a guessed name runs no check at all. It also draws the
+    boundary: eight laws, mechanically checkable, out of a field that is much
+    larger and mostly judgement.
 
     Returns
     -------
@@ -144,10 +162,26 @@ def laws() -> dict:
     }
 
 
-@app.post("/v1/audit", tags=["actions"], operation_id="audit_interface")
+@app.post(
+    "/v1/audit",
+    tags=["actions"],
+    operation_id="audit_interface",
+    summary="Audit an interface against the Laws of UX",
+)
 def audit(request: AuditRequest) -> dict:
     """
     Audit a string of HTML against the requested laws.
+
+    This is the tool for "is this interface any good", "too many options",
+    "why does this feel slow", "review my UI", « est-ce que cette interface
+    est utilisable » -- the usability question, as distinct from the
+    accessibility one (sprezzature-accessibility) and the contrast one
+    (sprezzature-colors).
+
+    It reads the markup: it counts choices, measures targets, looks for the
+    feedback a slow action should give. It cannot watch anybody use the page,
+    so it finds the mechanical mistakes and says nothing about whether the
+    design is right. Report it as evidence, never as a verdict.
 
     Parameters
     ----------
