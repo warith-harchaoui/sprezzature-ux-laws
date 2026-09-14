@@ -14,7 +14,10 @@ def test_package_imports() -> None:
     """sprezzature_ux_laws is importable with correct metadata."""
     import sprezzature_ux_laws
 
-    assert sprezzature_ux_laws.__version__ == "1.0.0"
+    # The version itself is checked against pyproject.toml and the
+    # CHANGELOG in test_release_consistency.py. Asserting the literal
+    # here only made the next release a red build.
+    assert sprezzature_ux_laws.__version__
     assert sprezzature_ux_laws.__author__ == "Warith HARCHAOUI"
 
 

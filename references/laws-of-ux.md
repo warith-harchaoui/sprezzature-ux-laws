@@ -152,9 +152,11 @@ For UX the takeaway is narrower than for protocol design:
 
 ## See also
 
-- `../scripts/audit_laws_of_ux.py`: static auditor that flags the
-  most mechanically-detectable violations (Hick, Miller, Fitts,
-  Jakob, Tesler, Aesthetic-Usability, Doherty).
+- `../scripts/audit_laws_of_ux.py`: static auditor that flags the eight
+  mechanically-detectable violations (Hick, Miller, Fitts, Jakob, Tesler,
+  Aesthetic-Usability, Selective Attention, Choice Overload). The Doherty
+  Threshold is **not** among them and cannot be: response time is not a fact
+  about source. Use Lighthouse on a real device for that one.
 - Companion skill **`sprezzature-ui`**: broader generation skill with its
   own `ux-psychology.md` (cognitive-step-ordered, overlapping with
   this set), `anti-patterns.md` (weaponised-principle refusal
