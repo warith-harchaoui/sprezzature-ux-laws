@@ -18,7 +18,7 @@ that are decidable from that text alone, such as counting the links in a `<nav>`
 trade keeps it fast and deterministic enough to run in a pre-commit hook or a CI step,
 at the cost of catching only the fraction of each law's violations that a text scan can
 see (the full, sourced definition of each law lives in
-[`references/laws-of-ux.md`](references/laws-of-ux.md)).
+[`references/laws-of-ux.md`](https://github.com/warith-harchaoui/sprezzature-ux-laws/blob/main/references/laws-of-ux.md)).
 
 ## Laws covered
 
