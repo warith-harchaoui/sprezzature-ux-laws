@@ -49,7 +49,7 @@ mcp = [
 sprezzature-ux-laws-mcp = "sprezzature_ux_laws.mcp:main"
 
 [project.urls]
-Homepage = "https://harchaoui.org/warith/sprezzature/"
+Homepage = "https://sprezzature.ai/"
 Repository = "https://github.com/warith-harchaoui/sprezzature-ux-laws"
 
 [tool.setuptools]

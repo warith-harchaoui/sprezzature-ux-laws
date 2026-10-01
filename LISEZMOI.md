@@ -5,7 +5,7 @@
 
 [🇬🇧 README.md](README.md) · 🇫🇷 LISEZMOI.md
 
-[![logo](https://raw.githubusercontent.com/warith-harchaoui/sprezzature-ux-laws/main/assets/logo.png)](https://harchaoui.org/warith/sprezzature/)
+[![logo](https://raw.githubusercontent.com/warith-harchaoui/sprezzature-ux-laws/main/assets/logo.png)](https://sprezzature.ai/)
 
 Un auditeur statique des **Laws of UX** (lois de l'ergonomie
 cognitive) pour du HTML.
@@ -64,4 +64,4 @@ rapide, pas un substitut à une revue de design.
 ## Licence
 
 BSD-3-Clause © Warith HARCHAOUI. Fait partie de la boîte à outils
-[sprezzature](https://harchaoui.org/warith/sprezzature/).
+[sprezzature](https://sprezzature.ai/).

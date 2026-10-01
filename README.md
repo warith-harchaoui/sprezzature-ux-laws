@@ -5,7 +5,7 @@
 
 [🇫🇷 LISEZMOI.md](https://github.com/warith-harchaoui/sprezzature-ux-laws/blob/main/LISEZMOI.md) · 🇬🇧 README.md
 
-[![logo](https://raw.githubusercontent.com/warith-harchaoui/sprezzature-ux-laws/main/assets/logo.png)](https://harchaoui.org/warith/sprezzature/)
+[![logo](https://raw.githubusercontent.com/warith-harchaoui/sprezzature-ux-laws/main/assets/logo.png)](https://sprezzature.ai/)
 
 A static **Laws-of-UX** auditor for HTML.
 
@@ -56,4 +56,4 @@ It is a fast gate, not a substitute for design review.
 
 ## License
 
-BSD-3-Clause © Warith HARCHAOUI. Part of the [sprezzature](https://harchaoui.org/warith/sprezzature/) toolkit.
+BSD-3-Clause © Warith HARCHAOUI. Part of the [sprezzature](https://sprezzature.ai/) toolkit.

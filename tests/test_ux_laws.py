@@ -112,7 +112,98 @@ def test_hick_allows_seven_item_nav(tmp_path: Path) -> None:
     assert not [f for f in findings if f.law == "hick"]
 
 
+def test_hick_counts_breakpoints_apart_not_together(tmp_path: Path) -> None:
+    """
+    A responsive header is counted per breakpoint, not as a union.
+
+    Six links marked ``hidden sm:inline`` and a hamburger marked
+    ``sm:hidden`` never paint together: desktop shows seven choices with
+    the logo, a phone shows two. Adding both sets gives eight and a false
+    error, which is what this guards against.
+    """
+    from audit_laws_of_ux import audit_file
+
+    links = "".join(
+        f'<a href="/p{i}" class="hidden sm:inline">Item {i}</a>' for i in range(6)
+    )
+    page = tmp_path / "responsive_nav.html"
+    page.write_text(
+        "<!DOCTYPE html><html><body><nav>"
+        f'<a href="/" class="flex">Home</a>{links}'
+        '<button class="sm:hidden">Menu</button>'
+        "</nav></body></html>",
+        encoding="utf-8",
+    )
+    assert not [f for f in audit_file(page, {"hick"}) if f.law == "hick"]
+
+
+def test_hick_still_flags_a_crowded_desktop_row(tmp_path: Path) -> None:
+    """Eight links visible at the same breakpoint are still eight choices."""
+    from audit_laws_of_ux import audit_file
+
+    links = "".join(
+        f'<a href="/p{i}" class="hidden sm:inline">Item {i}</a>' for i in range(8)
+    )
+    page = tmp_path / "crowded_nav.html"
+    page.write_text(
+        "<!DOCTYPE html><html><body><nav>"
+        f'{links}<button class="sm:hidden">Menu</button>'
+        "</nav></body></html>",
+        encoding="utf-8",
+    )
+    hick = [f for f in audit_file(page, {"hick"}) if f.law == "hick"]
+    assert len(hick) == 1
+    assert "on desktop" in hick[0].message
+
+
+def test_hick_skips_a_control_hidden_at_every_width(tmp_path: Path) -> None:
+    """A bare ``hidden`` with nothing to unhide it is not a choice at all."""
+    from audit_laws_of_ux import audit_file
+
+    links = "".join(f'<a href="/p{i}" class="flex">Item {i}</a>' for i in range(7))
+    page = tmp_path / "hidden_extra.html"
+    page.write_text(
+        "<!DOCTYPE html><html><body><nav>"
+        f'{links}<a href="/secret" class="hidden">Never shown</a>'
+        "</nav></body></html>",
+        encoding="utf-8",
+    )
+    assert not [f for f in audit_file(page, {"hick"}) if f.law == "hick"]
+
+
 # ── Miller's Law ────────────────────────────────────────────────────────────
+
+
+def test_miller_leaves_an_acronym_with_a_number_alone(tmp_path: Path) -> None:
+    """
+    ``GMTED2010`` is a dataset name, not a code to chunk.
+
+    The fixer used to rewrite it as ``G MTED 2010`` with two non-breaking
+    spaces inside the word, and that reached the published site.
+    """
+    from audit_laws_of_ux import audit_file
+
+    page = tmp_path / "acronym.html"
+    page.write_text(
+        "<!DOCTYPE html><html><body><p>Relief from real GMTED2010 elevation.</p>"
+        "</body></html>",
+        encoding="utf-8",
+    )
+    assert not [f for f in audit_file(page, {"miller"}) if f.law == "miller"]
+
+
+def test_miller_still_flags_a_long_digit_run(tmp_path: Path) -> None:
+    """A card-number-shaped run is still worth chunking."""
+    from audit_laws_of_ux import audit_file
+
+    page = tmp_path / "card.html"
+    page.write_text(
+        "<!DOCTYPE html><html><body><p>Card 4111111111111111 on file.</p>"
+        "</body></html>",
+        encoding="utf-8",
+    )
+    assert [f for f in audit_file(page, {"miller"}) if f.law == "miller"]
+
 
 
 def test_miller_flags_long_digit_bearing_run(tmp_path: Path) -> None:

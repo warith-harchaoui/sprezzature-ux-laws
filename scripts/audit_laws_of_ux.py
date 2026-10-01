@@ -128,6 +128,18 @@ RE_TW_SIZE: re.Pattern[str] = re.compile(
     r"(?:[a-z-]+:)*(?:min-)?(?:h|size)-(\w+)"
 )
 
+#: Tailwind's responsive display utilities, read by ``_visibility`` to tell
+#: apart the controls a phone shows from the ones a desktop shows. A header
+#: that carries both sets never paints them together, so Hick's Law has to
+#: count them apart. ``2xl`` starts with a digit, hence the explicit list
+#: rather than ``\w+``.
+RE_BP_HIDDEN: re.Pattern[str] = re.compile(r"(?:sm|md|lg|xl|2xl):hidden")
+RE_BP_SHOW: re.Pattern[str] = re.compile(
+    r"(?:sm|md|lg|xl|2xl):"
+    r"(?:block|flow-root|contents|inline|inline-block|inline-flex|flex|"
+    r"grid|inline-grid|table|inline-table|list-item)"
+)
+
 #: Regex finding a ``focus-visible:ring-*`` / ``focus:ring-*`` class.
 RE_TW_FOCUS_RING: re.Pattern[str] = re.compile(
     r"(?:[a-z-]+:)*focus(?:-visible)?:ring(?:-\w+)?"
@@ -142,6 +154,11 @@ RE_TW_STATUS_COLOUR: re.Pattern[str] = re.compile(
 #: Regex catching a contiguous run of ≥ 8 alphanumeric characters with no
 #: space, dash, slash, or non-breaking space. Used by the Miller check.
 RE_LONG_RUN: re.Pattern[str] = re.compile(r"[A-Za-z0-9]{8,}")
+
+#: Letters then digits and nothing after: the shape of a named standard or
+#: dataset (``GMTED2010``, ``LANDSAT8``, ``ISO14001``) rather than of an
+#: order number. Miller's chunking is skipped on these; see ``check_miller``.
+RE_ACRONYM_NUMBER: re.Pattern[str] = re.compile(r"[A-Za-z]{3,}\d+")
 
 #: Regex catching ``HH:MM`` or ``HH:MM:SS`` time strings. The Tesler check
 #: then looks for a timezone token within ~20 chars on either side.
@@ -411,6 +428,68 @@ def _ancestor_indices(walker: Walker, idx: int) -> list[int]:
     return chain
 
 
+def _visibility(walker: Walker, chain: list[int], stop: int) -> str:
+    """
+    Resolve when a control is on screen, from its Tailwind display classes.
+
+    Walks the element and its ancestors up to (not including) ``stop``,
+    reading the responsive display utilities Tailwind writes:
+
+    * bare ``hidden`` with a ``<bp>:<display>`` sibling class
+      (``hidden sm:inline``) means **wide only**: off screen on a phone,
+      on screen from that breakpoint up.
+    * ``<bp>:hidden`` without a bare ``hidden`` (``sm:hidden``) means
+      **narrow only**: the mobile-menu button is the usual case.
+    * bare ``hidden`` with nothing to unhide it means **never**.
+    * anything else is **always**.
+
+    An ancestor that hides its subtree wins over a descendant that would
+    show: a link inside ``<div class="hidden sm:flex">`` is wide-only
+    whatever its own classes say. A chain carrying both a wide-only and a
+    narrow-only rule can never paint, so it reports ``never``.
+
+    This only models the two states Hick's Law cares about here, phone and
+    desktop. A control that appears at ``md`` and disappears again at ``lg``
+    is counted as wide-only, which is the safe direction: it over-counts
+    rather than under-counts.
+
+    Parameters
+    ----------
+    walker : Walker
+        Parsed document.
+    chain : list of int
+        Ancestor indices for the element, nearest first, as returned by
+        ``_ancestor_indices``, with the element's own index prepended.
+    stop : int
+        Index of the ``<nav>`` the walk stops at.
+
+    Returns
+    -------
+    str
+        One of ``"always"``, ``"wide"``, ``"narrow"``, ``"never"``.
+    """
+    wide: bool = False
+    narrow: bool = False
+    for k in chain:
+        if k == stop:
+            break
+        cls: list[str] = _classes(walker.elements[k])
+        unhides: bool = any(RE_BP_SHOW.fullmatch(c) for c in cls)
+        if "hidden" in cls:
+            if not unhides:
+                return "never"
+            wide = True
+        elif any(RE_BP_HIDDEN.fullmatch(c) for c in cls):
+            narrow = True
+    if wide and narrow:
+        return "never"
+    if wide:
+        return "wide"
+    if narrow:
+        return "narrow"
+    return "always"
+
+
 def check_hick(walker: Walker, path: str) -> list[Finding]:
     """
     Hick's Law: no single ``<nav>`` should expose > 7 top-level choices.
@@ -423,6 +502,14 @@ def check_hick(walker: Walker, path: str) -> list[Finding]:
     or an element with ``role`` in
     {``radiogroup``, ``tablist``, ``menubar``, ``listbox``,
     ``combobox``}.
+
+    Choices are counted **per breakpoint, not as a union**. A responsive
+    header holds two sets of controls that never paint together: a row of
+    links marked ``hidden sm:inline`` and a hamburger marked ``sm:hidden``.
+    Adding them up charges the reader for choices no screen ever shows at
+    once, which is the opposite of what Hick's Law measures. The finding
+    reports the worse of the phone count and the desktop count, and says
+    which one it is. See ``_visibility`` for how each control is placed.
 
     Parameters
     ----------
@@ -448,9 +535,10 @@ def check_hick(walker: Walker, path: str) -> list[Finding]:
             continue
         # Count distinct logical choices: each grouping container (one
         # radiogroup, one details, …) counts as a single choice; any
-        # remaining direct interactive descendants count one each.
+        # remaining direct interactive descendants count one each. Each
+        # unit lands in the breakpoint bucket its display classes put it in.
         counted_groups: set[int] = set()
-        top_level: int = 0
+        buckets: dict[str, int] = {"always": 0, "wide": 0, "narrow": 0}
         for j, child in enumerate(walker.elements):
             if j == idx:
                 continue
@@ -479,10 +567,20 @@ def check_hick(walker: Walker, path: str) -> list[Finding]:
                 if grouped_under in counted_groups:
                     continue
                 counted_groups.add(grouped_under)
-                top_level += 1
+                unit_chain: list[int] = [grouped_under] + [
+                    k for k in chain if k != grouped_under
+                ]
+            else:
+                unit_chain = [j] + chain
+            where: str = _visibility(walker, unit_chain, idx)
+            if where == "never":
                 continue
-            top_level += 1
+            buckets[where] += 1
+        on_phone: int = buckets["always"] + buckets["narrow"]
+        on_desktop: int = buckets["always"] + buckets["wide"]
+        top_level: int = max(on_phone, on_desktop)
         if top_level > 7:
+            viewport: str = "on a phone" if on_phone >= on_desktop else "on desktop"
             out.append(
                 Finding(
                     law="hick",
@@ -491,7 +589,8 @@ def check_hick(walker: Walker, path: str) -> list[Finding]:
                     line=elem.line,
                     message=(
                         f"<nav> exposes {top_level} top-level choices "
-                        f"(> 7). Group, hide behind 'More', or split."
+                        f"{viewport} (> 7). Group, hide behind 'More', "
+                        f"or split."
                     ),
                 )
             )
@@ -574,6 +673,16 @@ def check_miller(path: str, lines: list[str]) -> list[Finding]:
             # technical jargon that does not benefit from 3–4-char
             # chunking, so skip them.
             if not any(c.isdigit() for c in run):
+                continue
+            # An acronym with a number welded on is a *name*, not a code to
+            # be read one group at a time: GMTED2010, LANDSAT8, SENTINEL2,
+            # ISO14001. Chunking it does not help anyone remember it, and
+            # the fixer below would rewrite it as ``G MTED 2010`` with two
+            # non-breaking spaces inside the word. That shipped to
+            # sprezzature.ai on two pages in two languages before anyone
+            # looked at the rendered page, which is exactly the failure this
+            # guard exists to prevent.
+            if RE_ACRONYM_NUMBER.fullmatch(run):
                 continue
             out.append(
                 Finding(
