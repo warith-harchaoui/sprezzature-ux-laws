@@ -42,13 +42,16 @@ définition complète et sourcée de chaque loi vit dans
 
 ```bash
 # Auditer un fichier ou une arborescence complète
-python scripts/audit_laws_of_ux.py public/index.html
-python scripts/audit_laws_of_ux.py site/ --json
+sprezzature-ux-laws-audit public/index.html
+sprezzature-ux-laws-audit site/ --json
 
 # Se restreindre à certaines lois, ou corriger automatiquement les cas mécaniques
-python scripts/audit_laws_of_ux.py page.html --only fitts,jakob
-python scripts/audit_laws_of_ux.py page.html --fix
+sprezzature-ux-laws-audit page.html --only fitts,jakob
+sprezzature-ux-laws-audit page.html --fix
 ```
+
+Depuis un clone, sans rien installer, la même chose s'écrit
+`python scripts/audit_laws_of_ux.py page.html`.
 
 Les constats sont de sévérité `error` ou `warning` ; le programme
 sort avec un code non nul dès qu'une `error` est présente, ce qui

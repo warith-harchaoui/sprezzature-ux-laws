@@ -17,7 +17,7 @@ for a real `<button>` (Jakob).
 ## Audit a single file
 
 ```bash
-python scripts/audit_laws_of_ux.py public/index.html
+sprezzature-ux-laws-audit public/index.html
 ```
 
 Output (text):
@@ -36,13 +36,13 @@ in `LAW_REGISTRY` order, not line order.
 ## Audit a directory recursively
 
 ```bash
-python scripts/audit_laws_of_ux.py public/
+sprezzature-ux-laws-audit public/
 ```
 
 ## JSON output for machine consumption
 
 ```bash
-python scripts/audit_laws_of_ux.py --json public/index.html | jq 'length'
+sprezzature-ux-laws-audit --json public/index.html | jq 'length'
 ```
 
 Output:
@@ -79,7 +79,7 @@ Output:
 ## Restrict to specific laws
 
 ```bash
-python scripts/audit_laws_of_ux.py --only fitts,jakob public/index.html
+sprezzature-ux-laws-audit --only fitts,jakob public/index.html
 ```
 
 Drops the aesthetic-usability finding, keeps the other two.
@@ -87,7 +87,7 @@ Drops the aesthetic-usability finding, keeps the other two.
 ## Skip specific laws
 
 ```bash
-python scripts/audit_laws_of_ux.py --ignore jakob,aesthetic-usability public/index.html
+sprezzature-ux-laws-audit --ignore jakob,aesthetic-usability public/index.html
 ```
 
 Leaves only the Fitts finding.
@@ -95,7 +95,7 @@ Leaves only the Fitts finding.
 ## Strict mode: promote every warning to an error
 
 ```bash
-python scripts/audit_laws_of_ux.py --strict --only fitts public/index.html
+sprezzature-ux-laws-audit --strict --only fitts public/index.html
 ```
 
 A `fitts` finding is a `warning` by default and would not fail the
@@ -104,7 +104,7 @@ run alone; `--strict` makes it exit `1` anyway.
 ## Auto-fix in place
 
 ```bash
-python scripts/audit_laws_of_ux.py --fix public/index.html
+sprezzature-ux-laws-audit --fix public/index.html
 ```
 
 stderr output:
@@ -133,7 +133,7 @@ Laws without a fixer (they need a design decision, not a text edit):
 ## Preview a fix without writing
 
 ```bash
-python scripts/audit_laws_of_ux.py --fix --dry-run public/index.html
+sprezzature-ux-laws-audit --fix --dry-run public/index.html
 ```
 
 Exits `0` always: a preview, not a verdict.
@@ -147,8 +147,12 @@ repos:
     hooks:
       - id: ux-laws-audit
         name: Laws-of-UX audit
-        entry: python scripts/audit_laws_of_ux.py
+        entry: sprezzature-ux-laws-audit
         language: python
+        # Without this, pre-commit builds an empty environment and the entry
+        # is not on its PATH. `python scripts/...` does not work either: that
+        # path belongs to this repository, not to the one being audited.
+        additional_dependencies: ["sprezzature-ux-laws"]
         files: \.html$
         args: ["public/"]
 ```

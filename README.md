@@ -37,13 +37,16 @@ see (the full, sourced definition of each law lives in
 
 ```bash
 # Audit a file or a whole directory tree
-python scripts/audit_laws_of_ux.py public/index.html
-python scripts/audit_laws_of_ux.py site/ --json
+sprezzature-ux-laws-audit public/index.html
+sprezzature-ux-laws-audit site/ --json
 
 # Restrict to specific laws, or auto-fix the mechanical ones
-python scripts/audit_laws_of_ux.py page.html --only fitts,jakob
-python scripts/audit_laws_of_ux.py page.html --fix
+sprezzature-ux-laws-audit page.html --only fitts,jakob
+sprezzature-ux-laws-audit page.html --fix
 ```
+
+From a clone, without installing, the same thing reads
+`python scripts/audit_laws_of_ux.py page.html`.
 
 Findings are `error` or `warning`; the process exits non-zero when an error is present,
 so it drops cleanly into CI.

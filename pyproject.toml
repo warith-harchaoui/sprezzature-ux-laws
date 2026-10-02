@@ -46,6 +46,13 @@ mcp = [
     "mcp<2.0",
 ]
 [project.scripts]
+# The auditor is this package's reason to exist and it had no console script:
+# the README told readers to run `python scripts/audit_laws_of_ux.py`, a path
+# that exists in a clone and not in a wheel, and the parser's own --help
+# advertised `sprezzature-ux-laws-audit`, which nothing installed. Someone who
+# ran `pip install sprezzature-ux-laws` could reach the MCP server and nothing
+# else.
+sprezzature-ux-laws-audit = "sprezzature_ux_laws_scripts.audit_laws_of_ux:main"
 sprezzature-ux-laws-mcp = "sprezzature_ux_laws.mcp:main"
 
 [project.urls]
