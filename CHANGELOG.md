@@ -2,9 +2,47 @@
 
 All notable changes to sprezzature-ux-laws are documented here.
 
-## [Unreleased] - 2026-09-04
+## [1.1.0] - 2026-10-02: the auditor is installable, which is the whole package
+
+Two changelog sections sat under "Unreleased" since August and September. They
+ship here, together with the release that makes the auditor reachable at all.
+
+### Added
+
+- **`sprezzature-ux-laws-audit`, a console script.** The auditor is this
+  package's reason to exist and nothing installed it. The README told readers
+  to run `python scripts/audit_laws_of_ux.py`, a path that exists in a clone
+  and not in a wheel, and the parser's own `--help` advertised
+  `sprezzature-ux-laws-audit`, which nothing registered. Someone who ran `pip
+  install sprezzature-ux-laws` could reach the MCP server and nothing else.
+- **A type gate**, `mypy.ini` plus one CI step. The monorepo carried one while
+  the skills lived there; at the split ruff came with the package and mypy did
+  not, so no standalone package checked its own annotations. Run by hand, it
+  found the `main` defect below in six packages at once. The step runs once, on
+  3.12: this is a gate, not a test matrix.
+- **`test_mcp_fallback_signature.py`**, which reads the source as a syntax tree
+  and so needs neither mypy nor an install, and a case in
+  `test_console_scripts_exist.py` ruling out the state where its scan finds no
+  candidates and the file reports green while testing nothing.
+- **A versioned `.githooks/pre-push`** running the same lint, type and test
+  steps as the workflow, in the same order, so a red state cannot reach the
+  remote.
 
 ### Fixed
+
+- **`mcp.py` defined `main` twice, and the two took different arguments.** One
+  definition sits in the `except ImportError` branch reached when the `[mcp]`
+  extra is absent, the other in the `else` branch that serves the real
+  endpoint. A single console script reaches both, so to a caller they are one
+  function. They were not: the fallback took nothing while the real one took
+  `argv`, so `main(["--host", "127.0.0.1"])` answered on a machine with the
+  extra and raised `TypeError` on a machine without it. The broken half is the
+  one a reader who skipped the extra meets first.
+- **Hick counted two breakpoints as one, and Miller broke acronyms apart.**
+  Two counting defects in the audit itself.
+- **The declared homepage named a host that no longer answers.**
+  `project.urls` pointed at `harchaoui.org`, now returning 503, and PyPI prints
+  that link on the package page. It points at `sprezzature.ai`.
 
 - `fix_file`: the live `--fix` and `--dry-run` summary line ("N unfixable
   finding(s)") only counted findings whose law has no fixer registered
@@ -29,7 +67,7 @@ All notable changes to sprezzature-ux-laws are documented here.
   Committed as `5805266` on 2026-09-02; this entry was missing from the
   changelog until now.
 
-## [Unreleased] - 2026-08-20
+### Also shipping here, held since 2026-08-20
 
 ### Fixed
 
