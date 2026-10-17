@@ -21,7 +21,7 @@ hand, so a script added later is covered without anyone remembering to add it.
 
 Author
 ------
-Warith HARCHAOUI <warith.harchaoui@gmail.com>
+Warith HARCHAOUI <warithmetics@deraison.ai>
 """
 
 from __future__ import annotations
