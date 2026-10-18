@@ -1,0 +1,25 @@
+# `docker compose up` is the whole onboarding. The Dockerfile beside this file
+# is a recipe; this is the way in — the port, the volume, the environment and
+# the command, declared rather than reconstructed by the next reader from a
+# `docker run` line in somebody's shell history.
+#
+#   docker compose up -d
+#   curl -s localhost:8000/health
+#   docker compose run --rm api sprezzature-ux-laws-audit --json /work/index.html
+#
+# No model, no network, no state: this brick reads HTML and reports on it.
+# That is why there is one service here and no profile — nothing to start
+# beside it, and saying so is part of the declaration.
+
+services:
+  api:
+    build: .
+    image: sprezzature-ux-laws:local
+    ports:
+      - "8000:8000"
+    volumes:
+      # The pages to audit. Mounted rather than copied so the container never
+      # holds the only copy, and so a re-run sees the file as just edited.
+      - ./work:/work
+    working_dir: /work
+    restart: unless-stopped
