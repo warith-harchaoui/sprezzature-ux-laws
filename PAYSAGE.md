@@ -32,6 +32,15 @@ bons principes d'ergonomie.
 | Correction automatique | ⭐⭐⭐ | ⭐ | N/A |
 | Reproductible, déterministe | ⭐⭐⭐⭐⭐ | ⭐⭐ | ⭐⭐ |
 
+D'autres fichiers PAYSAGE de cette suite passent leur table dans
+[`standpoint`](https://github.com/warith-harchaoui/standpoint) et montrent une carte de
+positionnement. Celui-ci ne le peut pas : avec trois options, la table ne porte que deux
+directions indépendantes, donc deux axes les garderaient toutes les deux et la « carte »
+serait la table redessinée. `standpoint` la refuse d'ailleurs, pour une raison voisine :
+une fois `N/A` lu comme un plancher, *Vitesse (CI)* et *Installation sans dépendance*
+deviennent la même colonne, et il ne projette pas deux fois le même critère. Cinq lignes
+et trois colonnes sont faites pour être lues, pas projetées.
+
 ## Quand utiliser quoi
 
 `sprezzature-ux-laws` sert de **verrou mécanique en pre-commit** : il

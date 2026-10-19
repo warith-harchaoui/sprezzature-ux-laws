@@ -29,6 +29,14 @@ ways a team checks whether an interface follows sound UX principles.
 | Auto-fix | ⭐⭐⭐ | ⭐ | N/A |
 | Repeatable, deterministic | ⭐⭐⭐⭐⭐ | ⭐⭐ | ⭐⭐ |
 
+Other LANDSCAPE files in this suite put their table through
+[`standpoint`](https://github.com/warith-harchaoui/standpoint) and show a positioning
+map. This one cannot: with three options the table holds two independent directions, so
+two axes would keep both and the "map" would be the table redrawn. `standpoint` refuses it
+outright for a related reason — once `N/A` is read as a floor, *Speed (CI)* and *Zero-dep
+install* become the same column, and it will not project a criterion twice. Five rows and
+three columns are meant to be read, not projected.
+
 ## When to use what
 
 Use `sprezzature-ux-laws` as a **mechanical pre-commit gate**: it
