@@ -46,9 +46,6 @@ Author
 
 from __future__ import annotations
 
-import sys
-from pathlib import Path
-
 try:
     from fastapi import FastAPI, HTTPException
     from fastapi.responses import RedirectResponse
@@ -60,21 +57,15 @@ except ImportError as exc:  # pragma: no cover - dependency guard
 
 from pydantic import BaseModel, Field
 
-# The checks live in the scripts package, which is where the command line
-# reaches them too; importing rather than re-implementing is the point.
-# Two layouts, one import. In this checkout the modules sit in scripts/;
-# installed from a wheel they ship as the sprezzature_ux_laws_scripts package.
-# Either way what goes on the path is the directory holding them, because
-# they import each other by bare name — that is the same property that lets
-# each one run on its own out of a downloaded zip.
-_SCRIPTS = Path(__file__).resolve().parent.parent / "scripts"
-if not _SCRIPTS.is_dir():  # pragma: no cover - installed layout
-    import sprezzature_ux_laws_scripts
-
-    _SCRIPTS = Path(sprezzature_ux_laws_scripts.__file__).resolve().parent
-sys.path.insert(0, str(_SCRIPTS))
-from audit_laws_of_ux import LAW_REGISTRY, audit_html  # noqa: E402
-
+# The checks come from this package's own library surface, which exists for
+# exactly this: one set of names that the command line, this API, the MCP
+# tools and somebody else's build step all read.
+#
+# Until 1.2.0 these two lines were a sys.path insert and a bare-name import
+# of `audit_laws_of_ux`, chosen because the modules sit in scripts/ in a
+# checkout and ship as a package in a wheel. It worked, and it made an HTTP
+# surface depend on a directory layout. A package import holds under both.
+from . import LAW_REGISTRY, audit_html  # noqa: E402
 from . import __version__ as _VERSION  # noqa: E402
 
 #: One line per law, so a caller (or an agent) knows what it is being told.

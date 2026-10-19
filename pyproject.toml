@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "sprezzature-ux-laws"
-version = "1.1.0"
+version = "1.2.0"
 description = "A static Laws-of-UX auditor for HTML: source-decidable checks for Hick, Miller, Fitts, Jakob, Tesler and more — no browser, no runtime DOM, no network."
 readme = "README.md"
 requires-python = ">=3.10"
@@ -24,7 +24,12 @@ classifiers = [
 dependencies = []
 
 [project.optional-dependencies]
-dev = ["pytest>=8.0", "ruff"]
+dev = ["pytest>=8.0", "ruff", "mypy"]
+# The click front door only. The auditor itself declares no dependencies at
+# all, and that is what makes it cheap enough for a pre-commit hook — so
+# click, which only one of the two front doors needs, is an extra rather than
+# a dependency. `sprezzature-ux-laws-audit` needs nothing.
+click = ["click>=8.0"]
 
 # HTTP surface (sprezzature_ux_laws/api.py): the auditor over HTTP, so a
 # design review or CI job in any language can run the same checks.
@@ -53,6 +58,10 @@ mcp = [
 # ran `pip install sprezzature-ux-laws` could reach the MCP server and nothing
 # else.
 sprezzature-ux-laws-audit = "sprezzature_ux_laws_scripts.audit_laws_of_ux:main"
+# The click twin, over the same flags and the same handler. argparse because
+# it is in the standard library and therefore always there; click because
+# somebody whose other tools are click commands expects this one to be too.
+sprezzature-ux-laws = "sprezzature_ux_laws.cli_click:main"
 sprezzature-ux-laws-mcp = "sprezzature_ux_laws.mcp:main"
 
 [project.urls]

@@ -33,6 +33,19 @@ see (the full, sourced definition of each law lives in
 | **Selective attention** | Elements styled like ads that carry real content. |
 | **Tesler's Law** | Irreducible complexity pushed onto the user. |
 
+## Install
+
+```bash
+pip install sprezzature-ux-laws               # the auditor: no dependencies
+pip install "sprezzature-ux-laws[click]"      # + the click front door
+pip install "sprezzature-ux-laws[api,mcp]"    # + the HTTP and agent surfaces
+```
+
+That the auditor has **no dependencies at all** is the point of it, and the
+reason it is cheap enough to put in a pre-commit hook: standard library,
+milliseconds, no browser. Everything heavier is an extra, named after what
+needs it.
+
 ## Use
 
 ```bash
@@ -45,11 +58,31 @@ sprezzature-ux-laws-audit page.html --only fitts,jakob
 sprezzature-ux-laws-audit page.html --fix
 ```
 
-From a clone, without installing, the same thing reads
-`python scripts/audit_laws_of_ux.py page.html`.
+`sprezzature-ux-laws` is the same thing through click, with the same flags and
+the same handler — use whichever matches the rest of your tooling. From a
+clone, without installing, it reads `python scripts/audit_laws_of_ux.py
+page.html`.
 
 Findings are `error` or `warning`; the process exits non-zero when an error is present,
 so it drops cleanly into CI.
+
+## From Python
+
+```python
+from pathlib import Path
+
+import sprezzature_ux_laws as ux
+
+for finding in ux.audit_html("<nav>" + '<a href="/">x</a>' * 12 + "</nav>"):
+    print(finding.law, finding.message)
+
+ux.audit_file(Path("public/index.html"), laws={"fitts", "jakob"})
+ux.fix_file(Path("page.html"), laws=set(ux.LAWS), dry_run=True)
+```
+
+`ux.LAWS` is the tuple of every law it knows, in the order the checks run —
+the same list the command line validates `--only` against and the HTTP API
+publishes, read from one place so the four surfaces cannot disagree.
 
 ## Honest scope
 

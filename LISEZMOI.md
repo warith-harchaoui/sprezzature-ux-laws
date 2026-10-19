@@ -38,6 +38,19 @@ définition complète et sourcée de chaque loi vit dans
 | **Attention sélective** | Éléments stylés comme des publicités mais porteurs d'un vrai contenu. |
 | **Loi de Tesler** | Complexité irréductible reportée sur l'utilisateur. |
 
+## Installation
+
+```bash
+pip install sprezzature-ux-laws               # l'auditeur : aucune dépendance
+pip install "sprezzature-ux-laws[click]"      # + la porte click
+pip install "sprezzature-ux-laws[api,mcp]"    # + les surfaces HTTP et agent
+```
+
+Que l'auditeur n'ait **aucune dépendance** est tout son intérêt, et la raison
+pour laquelle il est assez bon marché pour un crochet de pré-commit :
+bibliothèque standard, quelques millisecondes, aucun navigateur. Tout ce qui
+est plus lourd est un extra, nommé d'après ce qui en a besoin.
+
 ## Utilisation
 
 ```bash
@@ -50,12 +63,33 @@ sprezzature-ux-laws-audit page.html --only fitts,jakob
 sprezzature-ux-laws-audit page.html --fix
 ```
 
-Depuis un clone, sans rien installer, la même chose s'écrit
+`sprezzature-ux-laws` est la même chose à travers click, avec les mêmes
+drapeaux et le même gestionnaire — prenez celle qui ressemble au reste de vos
+outils. Depuis un clone, sans rien installer, ça s'écrit
 `python scripts/audit_laws_of_ux.py page.html`.
 
 Les constats sont de sévérité `error` ou `warning` ; le programme
 sort avec un code non nul dès qu'une `error` est présente, ce qui
 s'intègre proprement dans une CI.
+
+## Depuis Python
+
+```python
+from pathlib import Path
+
+import sprezzature_ux_laws as ux
+
+for constat in ux.audit_html("<nav>" + '<a href="/">x</a>' * 12 + "</nav>"):
+    print(constat.law, constat.message)
+
+ux.audit_file(Path("public/index.html"), laws={"fitts", "jakob"})
+ux.fix_file(Path("page.html"), laws=set(ux.LAWS), dry_run=True)
+```
+
+`ux.LAWS` est le tuple de toutes les lois connues, dans l'ordre où les
+vérifications tournent — la même liste que la ligne de commande utilise pour
+valider `--only` et que l'API HTTP publie, lue à un seul endroit pour que les
+quatre surfaces ne puissent pas se contredire.
 
 ## Périmètre assumé
 

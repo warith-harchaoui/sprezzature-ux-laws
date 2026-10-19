@@ -2,6 +2,42 @@
 
 All notable changes to sprezzature-ux-laws are documented here.
 
+## [1.2.0] - 2026-10-19: the two surfaces this package did not have
+
+Five surfaces is the contract across this suite — library, command line, HTTP
+API, MCP, skill — and this package had three. The gaps were the two most
+basic ones.
+
+### Added
+
+- **A library surface.** `import sprezzature_ux_laws` gave you a version
+  string and nothing else. The auditor was reachable from a command line,
+  from HTTP and from an agent, and not from Python — which is the one place a
+  static HTML check is most obviously useful, inside somebody else's build
+  step. `audit_html`, `audit_file`, `fix_file`, `Finding`, `Walker`,
+  `Element`, `LAW_REGISTRY`, `LAWS` and `FITTS_FIX_TOKEN` are the contract
+  now, and every surface reads them from there.
+
+- **`sprezzature-ux-laws`, the click twin**, over the same flags and the same
+  handler as `sprezzature-ux-laws-audit`. Both build the same argument vector
+  and hand it to the same `main`, so a flag cannot exist on one front door and
+  be missing from the other — a test derives the argparse flags from the
+  source and checks the twin against them.
+
+  Click is an **extra**, and the import is guarded. The auditor declares no
+  dependencies at all, which is what makes it cheap enough for a pre-commit
+  hook; a twin importing click at module load would end that silently,
+  because the failure arrives at the console script rather than at the
+  install. The guard is checked by actually hiding click from a subprocess.
+
+### Changed
+
+- **`api.py` imports the package, not a directory.** It reached the checks by
+  inserting `scripts/` on `sys.path` and importing `audit_laws_of_ux` by bare
+  name. That worked, and it made an HTTP surface depend on a layout: the
+  module imported correctly from a checkout and from a wheel for two
+  different reasons, and only one of them was a package.
+
 ## [1.1.0] - 2026-10-02: the auditor is installable, which is the whole package
 
 Two changelog sections sat under "Unreleased" since August and September. They
