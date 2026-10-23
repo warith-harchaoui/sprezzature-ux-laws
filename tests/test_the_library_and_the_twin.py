@@ -108,6 +108,31 @@ def test_a_subset_of_laws_is_honoured() -> None:
     assert all(f.law == "jakob" for f in only_jakob)
 
 
+def test_auditing_a_file_needs_nothing_but_the_file() -> None:
+    """`audit_file(path)` runs every law, like the command line with no --only.
+
+    It had no default while `audit_html`, the function it wraps, did. So the
+    file entry point -- the one a caller reaches for first, and the one the
+    sibling repository's site guard tried to call -- was strictly harder to
+    call than the string entry point behind it, and demanded a subset of laws
+    from a caller who wants all of them.
+    """
+    import tempfile
+
+    crowded = "<nav>" + '<a href="/">x</a>' * 12 + "</nav>"
+    with tempfile.TemporaryDirectory() as tmp:
+        page = Path(tmp) / "crowded.html"
+        page.write_text(crowded, encoding="utf-8")
+        findings = ux.audit_file(page)
+        narrowed = ux.audit_file(page, {"jakob"})
+    assert any(f.law == "hick" for f in findings), (
+        "audit_file with no laws= ran a narrower set than every law"
+    )
+    assert all(f.law == "jakob" for f in narrowed), (
+        "passing laws= to audit_file no longer narrows"
+    )
+
+
 def test_the_http_surface_reads_the_library_not_a_directory() -> None:
     """The sys.path insert is gone, and must not come back.
 

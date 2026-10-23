@@ -1279,18 +1279,24 @@ def audit_html(
     return findings
 
 
-def audit_file(path: Path, laws: set[str]) -> list[Finding]:
+def audit_file(path: Path, laws: set[str] | None = None) -> list[Finding]:
     """
     Run every requested law check against one HTML file.
 
     Thin wrapper over :func:`audit_html`: reads the file, audits the text.
 
+    ``laws`` defaults to every law, which is what the command line does when
+    ``--only`` is absent. It had no default while :func:`audit_html`, the
+    function this one wraps, did -- so the file entry point, the one a caller
+    reaches for first, was strictly harder to call than the string entry point
+    behind it, and demanded a subset from a caller who wants all of them.
+
     Parameters
     ----------
     path : Path
         File to audit.
-    laws : set of str
-        Subset of :data:`LAW_REGISTRY` keys to run.
+    laws : set of str, optional
+        Subset of :data:`LAW_REGISTRY` keys to run. Default: every law.
 
     Returns
     -------
