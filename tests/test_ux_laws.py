@@ -504,3 +504,103 @@ def test_fix_mode_counts_declined_fixer_as_skipped(tmp_path: Path) -> None:
     assert applied_dry == 0
     assert skipped_dry == 1
     assert any(f.law == "aesthetic-usability" for f in remaining_dry)
+
+
+def test_a_page_with_no_tailwind_gets_one_answer_not_one_per_element() -> None:
+    """The two scale checks say so once, instead of once per control.
+
+    Fitts asks for `min-h-11` and Aesthetic-Usability for
+    `focus-visible:ring-*`: both are Tailwind's scale, not the law. Pointed at
+    a Framer export of a blog they produced 1368 findings, almost all the same
+    sentence — a report nobody reads. And `--fix` would have written 1368
+    Tailwind class names into a page with no Tailwind behind them: classes
+    that style nothing, which is the quietest kind of damage.
+    """
+    from audit_laws_of_ux import audit_html
+
+    framer = (
+        '<html lang="en"><body><nav class="framer-abc123">'
+        + "".join(f'<a class="framer-link" href="/{i}">Link {i}</a>' for i in range(12))
+        + "</nav></body></html>"
+    )
+    scale = [f for f in audit_html(framer) if f.law in {"fitts", "aesthetic-usability"}]
+    assert len(scale) == 2, [f"{f.law}:{f.line}" for f in scale]
+    assert {f.law for f in scale} == {"fitts", "aesthetic-usability"}
+    assert all(f.severity == "info" for f in scale), [f.severity for f in scale]
+    # The laws that do not depend on the scale still speak.
+    assert any(f.law == "hick" for f in audit_html(framer)), (
+        "twelve links in a nav is a Hick finding whatever the stack is"
+    )
+
+
+def test_a_tailwind_page_is_still_measured_control_by_control() -> None:
+    """The narrowing must not silence the stack the skill is written for."""
+    from audit_laws_of_ux import audit_html
+
+    tailwind = (
+        '<html lang="en"><body>'
+        '<button class="rounded-lg bg-brand-blue px-4 py-2 text-sm">Go</button>'
+        "</body></html>"
+    )
+    laws = {f.law: f for f in audit_html(tailwind)}
+    assert "aesthetic-usability" in laws, "a Tailwind button with no focus ring"
+    assert laws["aesthetic-usability"].severity == "warning"
+    assert laws["aesthetic-usability"].line > 0
+
+
+def test_a_media_duration_is_not_a_time_of_day() -> None:
+    """`0:00` beside a player's own attributes has no timezone to state.
+
+    The markup is the read-along player `sprezzature-publish` writes into a
+    page, so the audit was flagging the suite's own output three times on
+    every narrated article — and the only remedy on offer was
+    `--ignore tesler`, which drops the law on the clock times it is for.
+    """
+    from audit_laws_of_ux import audit_html
+
+    player = (
+        '<html lang="en"><body>'
+        '<span class="ra-time" data-ra-elapsed>0:00</span>'
+        '<span class="ra-time ra-time-total">3:31</span>'
+        "</body></html>"
+    )
+    assert not [f for f in audit_html(player) if f.law == "tesler"]
+
+    clock = '<html lang="en"><body><p>The meeting starts at 14:30.</p></body></html>'
+    assert [f for f in audit_html(clock) if f.law == "tesler"], (
+        "a bare clock time with no timezone is still the defect this law is for"
+    )
+
+
+def test_a_duration_in_an_attribute_is_recognised_too() -> None:
+    """The unit is the enclosing tag, not a fixed character window.
+
+    A player's slider carries `aria-valuetext="0:00"` forty-odd characters
+    after the last thing that says it is a player, so a ±40 window sees only
+    the end of an `aria-label` and warns. Seven of those survived the first
+    narrowing, one per narrated article, all on markup this suite generates.
+    """
+    from audit_laws_of_ux import audit_html
+
+    slider = (
+        '<html lang="en"><body>'
+        '<input class="ra-scrub" type="range" min="0" max="1000" value="0" '
+        'step="1" data-ra-scrub aria-label="Move through the narration, a very '
+        'long label indeed so the window cannot reach" aria-valuetext="0:00">'
+        "</body></html>"
+    )
+    assert not [f for f in audit_html(slider) if f.law == "tesler"]
+
+
+def test_a_clock_time_in_an_attribute_still_warns() -> None:
+    """Widening the unit must not swallow the defect the law is for."""
+    from audit_laws_of_ux import audit_html
+
+    page = (
+        '<html lang="en"><body>'
+        '<span title="Next departure 14:30">Departure</span>'
+        "</body></html>"
+    )
+    assert [f for f in audit_html(page) if f.law == "tesler"], (
+        "a clock time in an attribute with no timezone is still a finding"
+    )

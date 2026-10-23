@@ -180,6 +180,22 @@ RE_TZ_TOKEN: re.Pattern[str] = re.compile(
     r"[A-Z][a-z]+/[A-Z][a-z_]+"
 )
 
+#: Words that only turn up around a *duration*, not a time of day. A media
+#: player writes ``0:00`` and ``3:31`` next to one of these, and asking it for
+#: a timezone is asking a question about the wrong quantity.
+#:
+#: The rule's own docstring used to concede the false positive and offer
+#: ``--ignore tesler`` — which silences the law everywhere, including on the
+#: clock times it is for. The suite also *generates* the markup it was firing
+#: on: the read-along player `sprezzature-publish` writes into a page carries
+#: ``ra-time`` and ``data-ra-elapsed``, so the audit flagged its own output
+#: three times on every narrated article.
+RE_DURATION_CONTEXT: re.Pattern[str] = re.compile(
+    r"\b(?:duration|elapsed|remaining|currentTime|runtime|length)\b"
+    r"|data-ra-|ra-time|type=\"range\"|<progress\b|<audio\b|<video\b",
+    re.I,
+)
+
 #: Labels that count as a "second channel" for the Selective-Attention
 #: check (a status colour plus one of these words is fine).
 STATUS_WORDS: frozenset[str] = frozenset(
@@ -758,6 +774,70 @@ def check_jakob(walker: Walker, path: str) -> list[Finding]:
     return out
 
 
+#: Utilities that only exist in Tailwind, used to answer one question: is this
+#: page styled with Tailwind at all? Deliberately short and unmistakable --
+#: `flex` and `border` are plausible hand-written class names, `px-4` and
+#: `focus-visible:ring-2` are not.
+_TAILWIND_TELLS: tuple[re.Pattern[str], ...] = (
+    re.compile(r"^[pm][xytrbl]?-\d"),
+    re.compile(r"^(?:text|bg|border)-(?:\w+)-\d{2,3}$"),
+    re.compile(r"^(?:sm|md|lg|xl|2xl|dark|hover|focus|focus-visible|motion-safe|motion-reduce):"),
+    re.compile(r"^(?:gap|space-[xy])-\d"),
+    re.compile(r"^(?:min-h|max-w|h|w)-(?:\d+|full|screen)$"),
+    re.compile(r"^rounded(?:-(?:sm|md|lg|xl|2xl|3xl|full))?$"),
+)
+
+#: How many distinct tells it takes to call a page Tailwind. Two, not one: a
+#: single `rounded` in somebody's own stylesheet should not decide it.
+_TAILWIND_FLOOR: int = 2
+
+
+def uses_tailwind(walker: Walker) -> bool:
+    """Whether this document is styled with Tailwind utilities.
+
+    Two of the eight law checks are about Tailwind's scale, not about the law:
+    Fitts asks for ``min-h-11`` and Aesthetic-Usability for
+    ``focus-visible:ring-*``. Both are right on the stack this skill is for,
+    and on anything else they fire once per interactive element forever. A
+    Framer export of a blog produced **1368** findings, almost all of them the
+    same sentence, which is a report nobody reads.
+
+    Worse, ``--fix`` would have written 1368 Tailwind class names into a page
+    with no Tailwind stylesheet behind them: classes that style nothing, which
+    is the quietest kind of damage — no error, no missing file, just markup
+    that got longer and did not change.
+
+    So the two scale checks ask this first and, when the answer is no, say so
+    once per document instead of once per element.
+    """
+    seen: set[str] = set()
+    for elem in walker.elements:
+        for token in _classes(elem):
+            for tell in _TAILWIND_TELLS:
+                if tell.match(token):
+                    seen.add(tell.pattern)
+                    break
+        if len(seen) >= _TAILWIND_FLOOR:
+            return True
+    return False
+
+
+def _not_a_tailwind_page(law: str, path: str, note: str) -> Finding:
+    """The one-per-document answer the two scale checks give instead."""
+    return Finding(
+        law=law,
+        severity="info",
+        path=path,
+        line=1,
+        message=(
+            f"no Tailwind utilities in this document, so {note} cannot be read "
+            f"from its classes. Checked by hand, or run this on the Tailwind "
+            f"output it is written for."
+        ),
+        snippet="",
+    )
+
+
 def check_fitts(walker: Walker, path: str) -> list[Finding]:
     """
     Fitts's Law: interactive controls need ≥ 44 px hit area.
@@ -767,6 +847,8 @@ def check_fitts(walker: Walker, path: str) -> list[Finding]:
     height-setting class at all (so the browser falls back to
     line-height + padding, which routinely lands < 44 px).
     """
+    if not uses_tailwind(walker):
+        return [_not_a_tailwind_page("fitts", path, "a 44-pixel hit area")]
     out: list[Finding] = []
     for elem in walker.elements:
         if elem.tag not in INTERACTIVE_TAGS:
@@ -811,6 +893,8 @@ def check_aesthetic_usability(walker: Walker, path: str) -> list[Finding]:
     Elements that explicitly opt out via ``focus:outline-none`` *and*
     have no ring still fail: the ring is the replacement.
     """
+    if not uses_tailwind(walker):
+        return [_not_a_tailwind_page("aesthetic-usability", path, "a focus ring")]
     out: list[Finding] = []
     for elem in walker.elements:
         if elem.tag not in INTERACTIVE_TAGS:
@@ -878,15 +962,41 @@ def check_selective_attention(walker: Walker, path: str) -> list[Finding]:
     return out
 
 
+def _duration_context(raw: str, start: int, end: int) -> str:
+    """The text that decides whether a number is a duration, not a clock time.
+
+    A fixed character window is the wrong unit when the number sits in an
+    attribute: a player's slider carries ``aria-valuetext="0:00"`` forty-odd
+    characters after the last thing that says it is a player, so a ±40 window
+    sees only the end of a label. The tag the match lives in is the right
+    unit, and it is cheap to find — scan left to the ``<`` with no ``>``
+    between, right to the closing ``>``.
+
+    For a number in ordinary page text there is no enclosing tag, and the
+    window around it is what there is.
+    """
+    opening = raw.rfind("<", 0, start)
+    closing = raw.rfind(">", 0, start)
+    if opening != -1 and opening > closing:
+        tag_end = raw.find(">", end)
+        return raw[opening : tag_end + 1 if tag_end != -1 else len(raw)]
+    return raw[max(0, start - 40) : min(len(raw), end + 40)]
+
+
 def check_tesler(path: str, lines: list[str]) -> list[Finding]:
     """
     Tesler's Law: time strings should carry a timezone.
 
     For every ``HH:MM`` match, look at a ~40-char window on each side
     for a timezone token (``UTC``, ``+02:00``, ``Europe/Paris``, …).
-    Misses warn: the user might be displaying a duration, in which
-    case the warning is a false positive and can be silenced with
-    ``--ignore tesler``.
+
+    Whether the number is a *duration* rather than a time of day is decided
+    on a different unit: the tag it sits in, falling back to the window when
+    it sits in page text. ``0:00`` beside ``data-ra-elapsed``, or inside a
+    slider carrying ``data-ra-scrub``, is a position in a recording and has no
+    timezone to state. This used to warn anyway, and the only remedy on offer was
+    ``--ignore tesler``, which drops the law on the clock times it exists for.
+    Three of those false positives were on markup this very suite generates.
     """
     out: list[Finding] = []
     for n, raw in enumerate(lines, start=1):
@@ -895,6 +1005,8 @@ def check_tesler(path: str, lines: list[str]) -> list[Finding]:
             end: int = min(len(raw), m.end() + 40)
             window: str = raw[start:end]
             if RE_TZ_TOKEN.search(window):
+                continue
+            if RE_DURATION_CONTEXT.search(_duration_context(raw, m.start(), m.end())):
                 continue
             out.append(
                 Finding(
