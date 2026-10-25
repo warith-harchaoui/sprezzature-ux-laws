@@ -128,9 +128,7 @@ def test_auditing_a_file_needs_nothing_but_the_file() -> None:
     assert any(f.law == "hick" for f in findings), (
         "audit_file with no laws= ran a narrower set than every law"
     )
-    assert all(f.law == "jakob" for f in narrowed), (
-        "passing laws= to audit_file no longer narrows"
-    )
+    assert all(f.law == "jakob" for f in narrowed), "passing laws= to audit_file no longer narrows"
 
 
 def test_the_http_surface_reads_the_library_not_a_directory() -> None:
@@ -140,19 +138,23 @@ def test_the_http_surface_reads_the_library_not_a_directory() -> None:
     correctly from a checkout and from a wheel for two different reasons, and
     only one of them is a package.
     """
-    source = (REPO_ROOT / "sprezzature_ux_laws" / "api.py").read_text(
-        encoding="utf-8"
-    )
+    source = (REPO_ROOT / "sprezzature_ux_laws" / "api.py").read_text(encoding="utf-8")
     assert "sys.path.insert" not in source
     assert "from audit_laws_of_ux import" not in source
 
 
-# ── The click twin ─────────────────────────────────────────────────────────
+# ── The command line ───────────────────────────────────────────────────────
 
 
-def test_the_twin_offers_every_flag_the_argparse_front_door_does() -> None:
-    """A flag on one front door and not the other is the failure to prevent."""
-    from sprezzature_ux_laws.cli_click import main as click_main
+def test_the_command_offers_every_flag_the_audit_takes() -> None:
+    """
+    The front door must not quietly expose less than the tool behind it.
+
+    This compared two front doors until 2026-10-25; with argparse gone it
+    compares the one that remains against the audit's own options, which is
+    the property that actually mattered.
+    """
+    from sprezzature_ux_laws.cli import main as click_main
 
     click_flags = {
         opt.lstrip("-").replace("-", "_")
@@ -160,9 +162,7 @@ def test_the_twin_offers_every_flag_the_argparse_front_door_does() -> None:
         for opt in getattr(param, "opts", [])
         if opt.startswith("--")
     }
-    source = (
-        REPO_ROOT / "scripts" / "audit_laws_of_ux.py"
-    ).read_text(encoding="utf-8")
+    source = (REPO_ROOT / "scripts" / "audit_laws_of_ux.py").read_text(encoding="utf-8")
     argparse_flags = {
         flag.lstrip("-").replace("-", "_")
         for flag in re.findall(r'add_argument\(\s*"(--[a-z-]+)"', source)
@@ -174,52 +174,34 @@ def test_the_twin_offers_every_flag_the_argparse_front_door_does() -> None:
 def test_both_front_doors_are_declared_as_console_scripts() -> None:
     """A front door nobody can type is not a front door."""
     pyproject = (REPO_ROOT / "pyproject.toml").read_text(encoding="utf-8")
-    section = re.search(
-        r"^\[project\.scripts\]\s*$(.*?)(?=^\[|\Z)", pyproject, re.M | re.S
-    )
+    section = re.search(r"^\[project\.scripts\]\s*$(.*?)(?=^\[|\Z)", pyproject, re.M | re.S)
     assert section
     for name in ("sprezzature-ux-laws-audit", "sprezzature-ux-laws"):
         assert re.search(rf"^{re.escape(name)}\s*=", section.group(1), re.M), name
 
 
-def test_click_is_an_extra_and_not_a_dependency() -> None:
-    """The auditor's zero dependencies are the reason it is worth reaching for."""
+def test_click_is_a_base_dependency_not_an_extra() -> None:
+    """
+    With argparse gone, no parser ships with Python.
+
+    This package deliberately carried no base dependencies, and click is the
+    one bought on purpose: an optional click would mean a
+    `pip install sprezzature-ux-laws` whose own command does not run. The
+    per-tool script `sprezzature-ux-laws-audit` still needs nothing beyond it.
+    """
     pyproject = (REPO_ROOT / "pyproject.toml").read_text(encoding="utf-8")
     base = re.search(r"^dependencies\s*=\s*\[(.*?)\]", pyproject, re.M | re.S)
-    assert base and "click" not in base.group(1)
-    assert re.search(r"^click\s*=\s*\[", pyproject, re.M), (
-        "the twin's help tells the reader to install [click]"
+    assert base and "click" in base.group(1)
+    assert not re.search(r"^click\s*=\s*\[", pyproject, re.M), (
+        "the [click] extra promises something the base install already has"
     )
 
 
-def test_the_twin_refuses_politely_when_click_is_missing() -> None:
-    """A bare install must get a sentence, not a traceback."""
-    done = _without_click(
-        "from sprezzature_ux_laws.cli_click import main\nsys.exit(main())\n"
-    )
-    assert done.returncode == 1, done.stderr
-    assert "sprezzature-ux-laws[click]" in done.stderr
-    assert "sprezzature-ux-laws-audit" in done.stderr, (
-        "the refusal has to point at the front door that needs nothing"
-    )
-    assert "Traceback" not in done.stderr
-
-
-def test_the_refusal_and_the_real_command_agree_on_their_signature() -> None:
-    """Two conditional definitions that disagree are a trap.
-
-    A caller who imports ``main`` and passes an argv gets a TypeError on the
-    machine where click is missing and nowhere else — the hardest kind of bug
-    to be told about, because the person who hits it has the broken install
-    and you have the working one.
-    """
-    done = _without_click(
-        "import inspect\n"
-        "from sprezzature_ux_laws.cli_click import main\n"
-        "print(list(inspect.signature(main).parameters))\n"
-    )
-    assert done.returncode == 0, done.stderr
-    assert done.stdout.strip() == "['argv']"
+def test_no_second_parser_grows_back() -> None:
+    """A second front door would re-introduce the duplicate option list."""
+    pkg = REPO_ROOT / "sprezzature_ux_laws"
+    assert not (pkg / "cli_click.py").exists()
+    assert "import argparse" not in (pkg / "cli.py").read_text(encoding="utf-8")
 
 
 def test_the_library_imports_with_no_click_anywhere() -> None:
@@ -229,8 +211,7 @@ def test_the_library_imports_with_no_click_anywhere() -> None:
     importable and this is a question about a machine where it is not.
     """
     done = _without_click(
-        "import sprezzature_ux_laws as ux\n"
-        "print(len(ux.audit_html('<button>Go</button>')) >= 0)\n"
+        "import sprezzature_ux_laws as ux\nprint(len(ux.audit_html('<button>Go</button>')) >= 0)\n"
     )
     assert done.returncode == 0, done.stderr
     assert done.stdout.strip() == "True"

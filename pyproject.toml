@@ -21,16 +21,17 @@ classifiers = [
     "Topic :: Internet :: WWW/HTTP :: Site Management",
     "Topic :: Software Development :: Quality Assurance",
 ]
-dependencies = []
+dependencies = [
+    # The command line, and the only parser since 2026-10-25. This package
+    # carried no base dependencies, and click is the one bought on purpose:
+    # with argparse gone nothing ships with Python that can parse a command
+    # line, so an optional click would mean an install whose own command does
+    # not run. `sprezzature-ux-laws-audit` still needs nothing beyond it.
+    "click>=8.0",
+]
 
 [project.optional-dependencies]
 dev = ["pytest>=8.0", "ruff", "mypy"]
-# The click front door only. The auditor itself declares no dependencies at
-# all, and that is what makes it cheap enough for a pre-commit hook — so
-# click, which only one of the two front doors needs, is an extra rather than
-# a dependency. `sprezzature-ux-laws-audit` needs nothing.
-click = ["click>=8.0"]
-
 # HTTP surface (sprezzature_ux_laws/api.py): the auditor over HTTP, so a
 # design review or CI job in any language can run the same checks.
 api = [
@@ -61,7 +62,7 @@ sprezzature-ux-laws-audit = "sprezzature_ux_laws_scripts.audit_laws_of_ux:main"
 # The click twin, over the same flags and the same handler. argparse because
 # it is in the standard library and therefore always there; click because
 # somebody whose other tools are click commands expects this one to be too.
-sprezzature-ux-laws = "sprezzature_ux_laws.cli_click:main"
+sprezzature-ux-laws = "sprezzature_ux_laws.cli:main"
 sprezzature-ux-laws-mcp = "sprezzature_ux_laws.mcp:main"
 
 [project.urls]
