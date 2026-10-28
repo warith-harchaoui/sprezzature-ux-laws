@@ -1,0 +1,89 @@
+# How this brick works, as drawn in README.md and LISEZMOI.md.
+#
+# The renderer lives in the hub, at sprezzature/scripts/make_brick_diagram.py,
+# because the ten bricks share one drawing and ten generators would have become
+# ten dialects of it. The content lives here, because the brick is what knows
+# what is true about itself.
+#
+# Redraw after any edit:
+#   python ~/sprezzature/scripts/make_brick_diagram.py sprezzature-ux-laws
+package: sprezzature-ux-laws
+
+en:
+  title: How sprezzature-ux-laws works
+  subtitle: Eight named laws, and the fraction of each one a text scan can honestly decide.
+  alt: >-
+    Flow diagram. At the top, HTML source feeds two lanes. The left lane audits: it
+    resolves what a single screen shows from the Tailwind display classes, reports
+    the worse of the phone count and the desktop count, and decides eight named
+    laws, returning findings that exit non-zero on an error. The right lane makes:
+    it applies the four mechanical repairs. Both meet in one outcome, a screen
+    whose measurable mistakes are gone.
+  input:
+    label: HTML source
+    note: a file or a whole tree. No browser opens, no page renders, and nobody is watched using it.
+  lanes:
+    - title: "Audit: count the choices, not the elements"
+      steps:
+        - label: Resolve what one screen shows
+          note: "a row marked hidden sm:inline and a hamburger marked sm:hidden never appear together. Ancestors win over children: a container that hides its subtree beats a child that would show."
+        - label: Report the worse of the two counts
+          note: "the phone reading or the desktop reading, and the finding says which. A group is one choice: a details, a menu, a radiogroup, a tablist each count once, whatever they hold."
+        - label: Decide the eight laws
+          note: Hick, choice overload, Miller, Jakob, Fitts, aesthetic-usability, selective attention, Tesler
+      result:
+        label: Findings, error or warning
+        note: the process exits non-zero when an error is present, so it drops into a continuous-integration run as it is
+    - title: "Make: repair what has one safe repair"
+      steps:
+        - label: Four of the eight carry a fixer
+          note: a hit area raised to 44 pixels for Fitts, a focus ring put back for aesthetic-usability, a digit run chunked for Miller, a clickable div turned into a button for Jakob
+        - label: Fix, re-audit, fix again
+          note: "a repair can create work: the fresh button needs its own hit area and focus ring. The loop runs to a fixed point, and a second run on a fixed file applies nothing."
+      result:
+        label: "--fix, with --dry-run to look first"
+        note: what needs a design decision is counted as skipped and reported, never written
+  outcome:
+    label: A screen whose measurable mistakes are gone, which is not the same as a screen that answers the right question
+    note: "Where the two responsive states are ambiguous the count goes up rather than down: a control that appears at md and disappears at lg is treated as desktop-only. Over-reporting sends somebody to look. Under-reporting ships."
+  footer: No dependencies at all, which is the point of it and the reason it is cheap enough for a pre-commit hook. It is a fast gate, not a substitute for design review.
+
+fr:
+  title: Comment fonctionne sprezzature-ux-laws
+  subtitle: Huit lois nommées, et la part de chacune qu'une lecture du texte peut honnêtement trancher.
+  alt: >-
+    Schéma de flux. En haut, une source HTML alimente deux voies. La voie de gauche
+    contrôle : elle établit ce qu'un seul écran montre à partir des classes
+    d'affichage Tailwind, retient le pire des deux décomptes, téléphone ou bureau,
+    et tranche huit lois nommées, puis rend des constats avec un code de sortie non
+    nul sur une erreur. La voie de droite fabrique : elle applique les quatre
+    réparations mécaniques. Les deux se rejoignent en un seul résultat, un écran
+    dont les fautes mesurables ont disparu.
+  input:
+    label: Une source HTML
+    note: un fichier ou toute une arborescence. Aucun navigateur ne s'ouvre, aucune page ne s'affiche, et personne n'est observé en train de s'en servir.
+  lanes:
+    - title: "Contrôler : compter les choix, pas les éléments"
+      steps:
+        - label: Établir ce qu'un seul écran montre
+          note: "une rangée marquée hidden sm:inline et un menu hamburger marqué sm:hidden n'apparaissent jamais ensemble. Les ancêtres l'emportent : un conteneur qui masque sa descendance bat un enfant qui s'afficherait."
+        - label: Retenir le pire des deux décomptes
+          note: "la lecture au téléphone ou celle au bureau, et le constat dit laquelle. Un groupe vaut un choix : un details, un menu, un radiogroup, un tablist comptent chacun pour un, quoi qu'ils contiennent."
+        - label: Trancher les huit lois
+          note: Hick, surcharge de choix, Miller, Jakob, Fitts, esthétique-utilisabilité, attention sélective, Tesler
+      result:
+        label: Des constats, erreur ou avertissement
+        note: le processus sort avec un code non nul dès qu'une erreur est présente, ce qui le pose tel quel dans une intégration continue
+    - title: "Fabriquer : réparer ce qui a une réparation sûre"
+      steps:
+        - label: Quatre lois sur huit portent un correcteur
+          note: une zone de clic portée à 44 pixels pour Fitts, un anneau de focus remis pour esthétique-utilisabilité, une suite de chiffres regroupée pour Miller, un div cliquable transformé en bouton pour Jakob
+        - label: Corriger, recontrôler, corriger encore
+          note: "une réparation peut créer du travail : le bouton tout neuf réclame sa zone de clic et son anneau. La boucle va jusqu'au point fixe, et un second passage sur un fichier déjà corrigé n'applique rien."
+      result:
+        label: "--fix, et --dry-run pour regarder d'abord"
+        note: ce qui demande une décision de conception est compté comme écarté et rapporté, jamais écrit
+  outcome:
+    label: Un écran dont les fautes mesurables ont disparu, ce qui n'est pas la même chose qu'un écran qui répond à la bonne question
+    note: "Quand les deux états responsives sont ambigus, le décompte monte plutôt qu'il ne descend : une commande qui apparaît en md et disparaît en lg est traitée comme réservée au bureau. Surévaluer envoie quelqu'un regarder. Sous-évaluer part en production."
+  footer: Aucune dépendance, ce qui en fait tout l'intérêt et le rend assez léger pour un crochet de pre-commit. C'est une barrière rapide, pas un substitut à la revue de conception.

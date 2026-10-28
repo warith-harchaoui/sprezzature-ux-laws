@@ -25,6 +25,10 @@ chaque loi, celle qu'une lecture de texte peut effectivement voir (la
 définition complète et sourcée de chaque loi vit dans
 [`references/laws-of-ux.md`](references/laws-of-ux.md)).
 
+## Comment ça marche
+
+![Schéma de flux. En haut, une source HTML alimente deux voies. La voie de gauche contrôle : elle établit ce qu'un seul écran montre à partir des classes d'affichage Tailwind, retient le pire des deux décomptes, téléphone ou bureau, et tranche huit lois nommées, puis rend des constats avec un code de sortie non nul sur une erreur. La voie de droite fabrique : elle applique les quatre réparations mécaniques. Les deux se rejoignent en un seul résultat, un écran dont les fautes mesurables ont disparu.](https://raw.githubusercontent.com/warith-harchaoui/sprezzature-ux-laws/main/assets/comment-ca-marche.svg)
+
 ## Lois couvertes
 
 | Loi | Ce qu'elle détecte |
@@ -37,6 +41,31 @@ définition complète et sourcée de chaque loi vit dans
 | **Effet esthétique-utilisabilité** | Éléments interactifs sans anneau de focus visible. |
 | **Attention sélective** | Éléments stylés comme des publicités mais porteurs d'un vrai contenu. |
 | **Loi de Tesler** | Complexité irréductible reportée sur l'utilisateur. |
+
+## Comment il compte : des choix, pas des éléments
+
+La loi de Hick mesure les choix qu'une personne affronte **au même instant**.
+Compter les liens d'un fichier se trompe donc deux fois.
+
+**Un en-tête responsive contient deux menus.** Une rangée marquée
+`hidden sm:inline` et un bouton marqué `sm:hidden` ne s'affichent jamais
+ensemble : le lecteur sur téléphone voit l'un, celui sur ordinateur voit
+l'autre. Les additionner reproche au lecteur des choix qu'aucun écran ne lui
+montre. L'auditeur résout donc la visibilité de chaque contrôle d'après ses
+classes d'affichage Tailwind, en remontant les ancêtres (un conteneur qui
+masque son sous-arbre l'emporte sur un enfant qui s'afficherait), puis retient
+le pire des deux comptes en disant lequel.
+
+**Un groupe vaut un choix.** Un `<details>`, un `<menu>`, un
+`role="radiogroup"` ou un `role="tablist"` replie plusieurs contrôles en une
+seule décision. Chacun compte pour un, quel que soit son contenu.
+
+Quand les deux états sont ambigus, le compte monte plutôt qu'il ne descend :
+un contrôle qui apparaît à `md` et disparaît à `lg` est traité comme réservé
+au bureau. Signaler de trop envoie quelqu'un vérifier ; signaler trop peu
+laisse passer.
+
+---
 
 ## Installation
 
