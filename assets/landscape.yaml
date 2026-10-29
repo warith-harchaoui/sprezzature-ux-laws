@@ -1,0 +1,587 @@
+meta:
+  reference: sprezzature-ux-laws
+  rotation_deg: 58.655
+  explained_variance_ratio:
+  - 0.5063
+  - 0.144
+  cumulative_variance: 0.6503
+  n_approaches: 25
+  attributes:
+  - Free or open source
+  - Speed in continuous integration
+  - Deterministic and reproducible
+  - Laws of UX covered
+  - Catches comprehension and journey problems
+  - Automatic repair
+  - No browser required
+  - Runs entirely on your machine
+  - No human reviewer needed
+  - No real traffic needed
+  - Published source per rule
+  - Maturity and ecosystem
+  - Machine-readable output
+  lower_is_better: []
+  imputed_cells: []
+axes:
+  axis_1:
+    name: Robustness ↔ Autonomy
+    pole_left: Robustness
+    pole_right: Autonomy
+    loadings:
+      Free or open source: 0.0085
+      Speed in continuous integration: 0.076
+      Deterministic and reproducible: 0.1867
+      Laws of UX covered: 0.2354
+      Catches comprehension and journey problems: -0.1182
+      Automatic repair: 0.3673
+      No browser required: 0.4002
+      Runs entirely on your machine: 0.2031
+      No human reviewer needed: 0.0585
+      No real traffic needed: 0.5046
+      Published source per rule: 0.0537
+      Maturity and ecosystem: -0.4337
+      Machine-readable output: -0.3232
+  axis_2:
+    name: Usability ↔ Efficiency
+    pole_bottom: Usability
+    pole_top: Efficiency
+    loadings:
+      Free or open source: 0.3543
+      Speed in continuous integration: 0.3808
+      Deterministic and reproducible: 0.3163
+      Laws of UX covered: -0.3524
+      Catches comprehension and journey problems: -0.3285
+      Automatic repair: 0.1423
+      No browser required: 0.0778
+      Runs entirely on your machine: 0.2692
+      No human reviewer needed: 0.3172
+      No real traffic needed: -0.1188
+      Published source per rule: -0.0357
+      Maturity and ecosystem: 0.0083
+      Machine-readable output: 0.4272
+approaches:
+- name: sprezzature-ux-laws
+  coordinates:
+    axis_1: 2.9438
+    axis_2: 3.3275
+  role: best
+  color: '#FF3B30'
+  attributes:
+    Free or open source: 5.0
+    Speed in continuous integration: 5.0
+    Deterministic and reproducible: 5.0
+    Laws of UX covered: 2.0
+    Catches comprehension and journey problems: 1.0
+    Automatic repair: 4.0
+    No browser required: 5.0
+    Runs entirely on your machine: 5.0
+    No human reviewer needed: 5.0
+    No real traffic needed: 5.0
+    Published source per rule: 5.0
+    Maturity and ecosystem: 1.0
+    Machine-readable output: 4.0
+  imputed_attributes: []
+- name: ux-skill
+  coordinates:
+    axis_1: 2.5509
+    axis_2: 2.5663
+  role: competitor
+  color: '#6EA3EF'
+  attributes:
+    Free or open source: 5.0
+    Speed in continuous integration: 5.0
+    Deterministic and reproducible: 5.0
+    Laws of UX covered: 3.0
+    Catches comprehension and journey problems: 1.0
+    Automatic repair: 3.0
+    No browser required: 5.0
+    Runs entirely on your machine: 5.0
+    No human reviewer needed: 5.0
+    No real traffic needed: 5.0
+    Published source per rule: 2.0
+    Maturity and ecosystem: 2.0
+    Machine-readable output: 4.0
+  imputed_attributes: []
+- name: uxlint
+  coordinates:
+    axis_1: 0.117
+    axis_2: -0.0816
+  role: competitor
+  color: '#00A5CD'
+  attributes:
+    Free or open source: 5.0
+    Speed in continuous integration: 3.0
+    Deterministic and reproducible: 2.0
+    Laws of UX covered: 3.0
+    Catches comprehension and journey problems: 4.0
+    Automatic repair: 1.0
+    No browser required: 1.0
+    Runs entirely on your machine: 3.0
+    No human reviewer needed: 5.0
+    No real traffic needed: 5.0
+    Published source per rule: 2.0
+    Maturity and ecosystem: 1.0
+    Machine-readable output: 4.0
+  imputed_attributes: []
+- name: Banno ux-lint
+  coordinates:
+    axis_1: 2.9438
+    axis_2: 3.1492
+  role: right
+  color: '#007AFF'
+  attributes:
+    Free or open source: 5.0
+    Speed in continuous integration: 5.0
+    Deterministic and reproducible: 5.0
+    Laws of UX covered: 1.0
+    Catches comprehension and journey problems: 1.0
+    Automatic repair: 4.0
+    No browser required: 5.0
+    Runs entirely on your machine: 5.0
+    No human reviewer needed: 5.0
+    No real traffic needed: 5.0
+    Published source per rule: 1.0
+    Maturity and ecosystem: 1.0
+    Machine-readable output: 3.0
+  imputed_attributes: []
+- name: sprezzature-accessibility
+  coordinates:
+    axis_1: 2.6084
+    axis_2: 2.7097
+  role: competitor
+  color: '#A8BAFF'
+  attributes:
+    Free or open source: 5.0
+    Speed in continuous integration: 5.0
+    Deterministic and reproducible: 5.0
+    Laws of UX covered: 2.0
+    Catches comprehension and journey problems: 1.0
+    Automatic repair: 3.0
+    No browser required: 5.0
+    Runs entirely on your machine: 4.0
+    No human reviewer needed: 5.0
+    No real traffic needed: 5.0
+    Published source per rule: 5.0
+    Maturity and ecosystem: 1.0
+    Machine-readable output: 4.0
+  imputed_attributes: []
+- name: axe-core
+  coordinates:
+    axis_1: -0.5062
+    axis_2: 2.7465
+  role: competitor
+  color: '#B588DA'
+  attributes:
+    Free or open source: 5.0
+    Speed in continuous integration: 5.0
+    Deterministic and reproducible: 5.0
+    Laws of UX covered: 2.0
+    Catches comprehension and journey problems: 1.0
+    Automatic repair: 1.0
+    No browser required: 1.0
+    Runs entirely on your machine: 5.0
+    No human reviewer needed: 5.0
+    No real traffic needed: 5.0
+    Published source per rule: 5.0
+    Maturity and ecosystem: 5.0
+    Machine-readable output: 5.0
+  imputed_attributes: []
+- name: Pa11y
+  coordinates:
+    axis_1: -0.3926
+    axis_2: 2.2659
+  role: competitor
+  color: '#8877CB'
+  attributes:
+    Free or open source: 5.0
+    Speed in continuous integration: 4.0
+    Deterministic and reproducible: 4.0
+    Laws of UX covered: 2.0
+    Catches comprehension and journey problems: 1.0
+    Automatic repair: 1.0
+    No browser required: 1.0
+    Runs entirely on your machine: 5.0
+    No human reviewer needed: 5.0
+    No real traffic needed: 5.0
+    Published source per rule: 5.0
+    Maturity and ecosystem: 4.0
+    Machine-readable output: 5.0
+  imputed_attributes: []
+- name: Lighthouse
+  coordinates:
+    axis_1: -1.0041
+    axis_2: 1.8926
+  role: competitor
+  color: '#D08BD2'
+  attributes:
+    Free or open source: 5.0
+    Speed in continuous integration: 4.0
+    Deterministic and reproducible: 3.0
+    Laws of UX covered: 2.0
+    Catches comprehension and journey problems: 1.0
+    Automatic repair: 1.0
+    No browser required: 1.0
+    Runs entirely on your machine: 4.0
+    No human reviewer needed: 5.0
+    No real traffic needed: 5.0
+    Published source per rule: 4.0
+    Maturity and ecosystem: 5.0
+    Machine-readable output: 5.0
+  imputed_attributes: []
+- name: '@lapidist/design-lint'
+  coordinates:
+    axis_1: 2.0425
+    axis_2: 3.3275
+  role: top
+  color: '#AF52DE'
+  attributes:
+    Free or open source: 5.0
+    Speed in continuous integration: 5.0
+    Deterministic and reproducible: 5.0
+    Laws of UX covered: 1.0
+    Catches comprehension and journey problems: 1.0
+    Automatic repair: 3.0
+    No browser required: 5.0
+    Runs entirely on your machine: 5.0
+    No human reviewer needed: 5.0
+    No real traffic needed: 5.0
+    Published source per rule: 2.0
+    Maturity and ecosystem: 2.0
+    Machine-readable output: 4.0
+  imputed_attributes: []
+- name: Figma Design Lint
+  coordinates:
+    axis_1: 0.6202
+    axis_2: 0.0845
+  role: competitor
+  color: '#61BEFC'
+  attributes:
+    Free or open source: 5.0
+    Speed in continuous integration: 1.0
+    Deterministic and reproducible: 4.0
+    Laws of UX covered: 1.0
+    Catches comprehension and journey problems: 1.0
+    Automatic repair: 2.0
+    No browser required: 2.0
+    Runs entirely on your machine: 2.0
+    No human reviewer needed: 3.0
+    No real traffic needed: 5.0
+    Published source per rule: 1.0
+    Maturity and ecosystem: 3.0
+    Machine-readable output: 1.0
+  imputed_attributes: []
+- name: Baymard UX-Ray
+  coordinates:
+    axis_1: -0.2584
+    axis_2: -2.4576
+  role: competitor
+  color: '#84BD6D'
+  attributes:
+    Free or open source: 1.0
+    Speed in continuous integration: 1.0
+    Deterministic and reproducible: 2.0
+    Laws of UX covered: 3.0
+    Catches comprehension and journey problems: 4.0
+    Automatic repair: 1.0
+    No browser required: 2.0
+    Runs entirely on your machine: 1.0
+    No human reviewer needed: 5.0
+    No real traffic needed: 5.0
+    Published source per rule: 5.0
+    Maturity and ecosystem: 4.0
+    Machine-readable output: 2.0
+  imputed_attributes: []
+- name: UX Pilot
+  coordinates:
+    axis_1: 0.3932
+    axis_2: -1.753
+  role: competitor
+  color: '#00B3AA'
+  attributes:
+    Free or open source: 2.0
+    Speed in continuous integration: 1.0
+    Deterministic and reproducible: 2.0
+    Laws of UX covered: 2.0
+    Catches comprehension and journey problems: 3.0
+    Automatic repair: 2.0
+    No browser required: 2.0
+    Runs entirely on your machine: 1.0
+    No human reviewer needed: 5.0
+    No real traffic needed: 5.0
+    Published source per rule: 2.0
+    Maturity and ecosystem: 3.0
+    Machine-readable output: 1.0
+  imputed_attributes: []
+- name: Heurio
+  coordinates:
+    axis_1: 0.2796
+    axis_2: -2.9094
+  role: competitor
+  color: '#0CA786'
+  attributes:
+    Free or open source: 3.0
+    Speed in continuous integration: 1.0
+    Deterministic and reproducible: 2.0
+    Laws of UX covered: 4.0
+    Catches comprehension and journey problems: 3.0
+    Automatic repair: 1.0
+    No browser required: 1.0
+    Runs entirely on your machine: 1.0
+    No human reviewer needed: 1.0
+    No real traffic needed: 5.0
+    Published source per rule: 4.0
+    Maturity and ecosystem: 2.0
+    Machine-readable output: 2.0
+  imputed_attributes: []
+- name: Manual heuristic review (NIELSEN)
+  coordinates:
+    axis_1: 1.2904
+    axis_2: -2.8261
+  role: competitor
+  color: '#43DBEB'
+  attributes:
+    Free or open source: 4.0
+    Speed in continuous integration: 1.0
+    Deterministic and reproducible: 2.0
+    Laws of UX covered: 5.0
+    Catches comprehension and journey problems: 4.0
+    Automatic repair: 1.0
+    No browser required: 5.0
+    Runs entirely on your machine: 5.0
+    No human reviewer needed: 1.0
+    No real traffic needed: 5.0
+    Published source per rule: 5.0
+    Maturity and ecosystem: 5.0
+    Machine-readable output: 1.0
+  imputed_attributes: []
+- name: Maze
+  coordinates:
+    axis_1: -1.4034
+    axis_2: -2.7312
+  role: competitor
+  color: '#BA7923'
+  attributes:
+    Free or open source: 2.0
+    Speed in continuous integration: 1.0
+    Deterministic and reproducible: 2.0
+    Laws of UX covered: 3.0
+    Catches comprehension and journey problems: 5.0
+    Automatic repair: 1.0
+    No browser required: 1.0
+    Runs entirely on your machine: 1.0
+    No human reviewer needed: 1.0
+    No real traffic needed: 4.0
+    Published source per rule: 3.0
+    Maturity and ecosystem: 4.0
+    Machine-readable output: 3.0
+  imputed_attributes: []
+- name: Lyssna
+  coordinates:
+    axis_1: -1.0177
+    axis_2: -2.5196
+  role: competitor
+  color: '#A19528'
+  attributes:
+    Free or open source: 2.0
+    Speed in continuous integration: 1.0
+    Deterministic and reproducible: 2.0
+    Laws of UX covered: 3.0
+    Catches comprehension and journey problems: 4.0
+    Automatic repair: 1.0
+    No browser required: 1.0
+    Runs entirely on your machine: 1.0
+    No human reviewer needed: 1.0
+    No real traffic needed: 4.0
+    Published source per rule: 3.0
+    Maturity and ecosystem: 3.0
+    Machine-readable output: 3.0
+  imputed_attributes: []
+- name: UXtweak
+  coordinates:
+    axis_1: -1.0904
+    axis_2: -2.505
+  role: competitor
+  color: '#BB922A'
+  attributes:
+    Free or open source: 3.0
+    Speed in continuous integration: 1.0
+    Deterministic and reproducible: 2.0
+    Laws of UX covered: 3.0
+    Catches comprehension and journey problems: 5.0
+    Automatic repair: 1.0
+    No browser required: 1.0
+    Runs entirely on your machine: 1.0
+    No human reviewer needed: 1.0
+    No real traffic needed: 4.0
+    Published source per rule: 3.0
+    Maturity and ecosystem: 3.0
+    Machine-readable output: 3.0
+  imputed_attributes: []
+- name: UserTesting
+  coordinates:
+    axis_1: -1.4167
+    axis_2: -3.3275
+  role: worst
+  color: '#A52A2A'
+  attributes:
+    Free or open source: 1.0
+    Speed in continuous integration: 1.0
+    Deterministic and reproducible: 2.0
+    Laws of UX covered: 3.0
+    Catches comprehension and journey problems: 5.0
+    Automatic repair: 1.0
+    No browser required: 1.0
+    Runs entirely on your machine: 1.0
+    No human reviewer needed: 1.0
+    No real traffic needed: 4.0
+    Published source per rule: 4.0
+    Maturity and ecosystem: 5.0
+    Machine-readable output: 2.0
+  imputed_attributes: []
+- name: Optimal Workshop
+  coordinates:
+    axis_1: -1.2915
+    axis_2: -2.1114
+  role: competitor
+  color: '#F79F6A'
+  attributes:
+    Free or open source: 2.0
+    Speed in continuous integration: 1.0
+    Deterministic and reproducible: 2.0
+    Laws of UX covered: 2.0
+    Catches comprehension and journey problems: 4.0
+    Automatic repair: 1.0
+    No browser required: 2.0
+    Runs entirely on your machine: 1.0
+    No human reviewer needed: 1.0
+    No real traffic needed: 4.0
+    Published source per rule: 4.0
+    Maturity and ecosystem: 4.0
+    Machine-readable output: 3.0
+  imputed_attributes: []
+- name: Hotjar
+  coordinates:
+    axis_1: -2.9438
+    axis_2: -1.4403
+  role: competitor
+  color: '#CC6D57'
+  attributes:
+    Free or open source: 3.0
+    Speed in continuous integration: 1.0
+    Deterministic and reproducible: 2.0
+    Laws of UX covered: 2.0
+    Catches comprehension and journey problems: 4.0
+    Automatic repair: 1.0
+    No browser required: 1.0
+    Runs entirely on your machine: 1.0
+    No human reviewer needed: 2.0
+    No real traffic needed: 1.0
+    Published source per rule: 2.0
+    Maturity and ecosystem: 5.0
+    Machine-readable output: 3.0
+  imputed_attributes: []
+- name: Microsoft Clarity
+  coordinates:
+    axis_1: -2.9383
+    axis_2: -1.2082
+  role: competitor
+  color: '#FF9BA0'
+  attributes:
+    Free or open source: 4.0
+    Speed in continuous integration: 1.0
+    Deterministic and reproducible: 2.0
+    Laws of UX covered: 2.0
+    Catches comprehension and journey problems: 4.0
+    Automatic repair: 1.0
+    No browser required: 1.0
+    Runs entirely on your machine: 1.0
+    No human reviewer needed: 2.0
+    No real traffic needed: 1.0
+    Published source per rule: 2.0
+    Maturity and ecosystem: 5.0
+    Machine-readable output: 3.0
+  imputed_attributes: []
+- name: LogRocket
+  coordinates:
+    axis_1: -2.8578
+    axis_2: -1.1133
+  role: competitor
+  color: '#E482A1'
+  attributes:
+    Free or open source: 2.0
+    Speed in continuous integration: 2.0
+    Deterministic and reproducible: 2.0
+    Laws of UX covered: 2.0
+    Catches comprehension and journey problems: 4.0
+    Automatic repair: 1.0
+    No browser required: 1.0
+    Runs entirely on your machine: 1.0
+    No human reviewer needed: 2.0
+    No real traffic needed: 1.0
+    Published source per rule: 2.0
+    Maturity and ecosystem: 4.0
+    Machine-readable output: 4.0
+  imputed_attributes: []
+- name: Attention Insight
+  coordinates:
+    axis_1: 0.0336
+    axis_2: -1.3159
+  role: competitor
+  color: '#74D296'
+  attributes:
+    Free or open source: 2.0
+    Speed in continuous integration: 1.0
+    Deterministic and reproducible: 3.0
+    Laws of UX covered: 2.0
+    Catches comprehension and journey problems: 2.0
+    Automatic repair: 1.0
+    No browser required: 2.0
+    Runs entirely on your machine: 1.0
+    No human reviewer needed: 4.0
+    No real traffic needed: 5.0
+    Published source per rule: 4.0
+    Maturity and ecosystem: 3.0
+    Machine-readable output: 2.0
+  imputed_attributes: []
+- name: Neurons Predict
+  coordinates:
+    axis_1: -0.2397
+    axis_2: -1.5685
+  role: competitor
+  color: '#A7BD5D'
+  attributes:
+    Free or open source: 1.0
+    Speed in continuous integration: 1.0
+    Deterministic and reproducible: 3.0
+    Laws of UX covered: 2.0
+    Catches comprehension and journey problems: 2.0
+    Automatic repair: 1.0
+    No browser required: 2.0
+    Runs entirely on your machine: 1.0
+    No human reviewer needed: 4.0
+    No real traffic needed: 5.0
+    Published source per rule: 5.0
+    Maturity and ecosystem: 4.0
+    Machine-readable output: 2.0
+  imputed_attributes: []
+- name: CrUX + web-vitals
+  coordinates:
+    axis_1: -2.5224
+    axis_2: 1.958
+  role: competitor
+  color: '#E48DC3'
+  attributes:
+    Free or open source: 5.0
+    Speed in continuous integration: 3.0
+    Deterministic and reproducible: 3.0
+    Laws of UX covered: 1.0
+    Catches comprehension and journey problems: 2.0
+    Automatic repair: 1.0
+    No browser required: 3.0
+    Runs entirely on your machine: 2.0
+    No human reviewer needed: 5.0
+    No real traffic needed: 1.0
+    Published source per rule: 4.0
+    Maturity and ecosystem: 5.0
+    Machine-readable output: 5.0
+  imputed_attributes: []
