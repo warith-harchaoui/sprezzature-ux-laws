@@ -37,7 +37,7 @@ be missing.
 
 What the tolerance had become was measured here on 2026-10-31. With
 ``sprezzature_ux_laws.cli`` made to exit 1 printing exactly what the tolerance
-asked for — ``pip install 'sprezzature-ux-laws[click]'``, no traceback — the
+asked for — an install line naming a ``[click]`` extra, no traceback — the
 old file passed **every one of its four cases**. A refusal has to name the
 distribution to be useful, this package's Click front door is named after the
 distribution, so the one assertion left standing, that the help names the
