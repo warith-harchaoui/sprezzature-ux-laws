@@ -63,15 +63,15 @@ desktop-only. Over-reporting sends somebody to look; under-reporting ships.
 ## Install
 
 ```bash
-pip install sprezzature-ux-laws               # the auditor: no dependencies
-pip install "sprezzature-ux-laws[click]"      # + the click front door
+pip install sprezzature-ux-laws               # the auditor, and click for the command line
 pip install "sprezzature-ux-laws[api,mcp]"    # + the HTTP and agent surfaces
 ```
 
-That the auditor has **no dependencies at all** is the point of it, and the
-reason it is cheap enough to put in a pre-commit hook: standard library,
-milliseconds, no browser. Everything heavier is an extra, named after what
-needs it.
+That the auditor itself is **standard library only** is the point of it,
+and the reason it is cheap enough to put in a pre-commit hook: milliseconds,
+no browser. The one base dependency is click, bought on purpose for the
+command line, because with argparse gone no parser ships with Python.
+Everything heavier is an extra, named after what needs it.
 
 ## Use
 

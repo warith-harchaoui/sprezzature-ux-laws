@@ -70,15 +70,16 @@ laisse passer.
 ## Installation
 
 ```bash
-pip install sprezzature-ux-laws               # l'auditeur : aucune dépendance
-pip install "sprezzature-ux-laws[click]"      # + la porte click
+pip install sprezzature-ux-laws               # l'auditeur, et click pour la ligne de commande
 pip install "sprezzature-ux-laws[api,mcp]"    # + les surfaces HTTP et agent
 ```
 
-Que l'auditeur n'ait **aucune dépendance** est tout son intérêt, et la raison
-pour laquelle il est assez bon marché pour un crochet de pré-commit :
-bibliothèque standard, quelques millisecondes, aucun navigateur. Tout ce qui
-est plus lourd est un extra, nommé d'après ce qui en a besoin.
+Que l'auditeur lui-même tienne dans la **bibliothèque standard** est tout
+son intérêt, et la raison pour laquelle il est assez bon marché pour un
+crochet de pré-commit : quelques millisecondes, aucun navigateur. L'unique
+dépendance de base est click, achetée exprès pour la ligne de commande,
+puisqu'avec argparse parti plus aucun analyseur n'est livré avec Python. Tout
+ce qui est plus lourd est un extra, nommé d'après ce qui en a besoin.
 
 ## Utilisation
 
