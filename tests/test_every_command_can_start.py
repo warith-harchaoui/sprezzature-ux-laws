@@ -21,11 +21,32 @@ one's suite ever runs a command it installs. Four did not, this among them, and
 the comment in the monorepo had been asserting the opposite — "its own suite
 checks their --help there". It is this suite's job and it was not being done.
 
-Both outcomes are accepted, and the second is real here: the auditor is
-stdlib-only by design, so ``click`` is an extra and ``sprezzature-ux-laws`` —
-the Click front door — correctly refuses with exit 1 and the install line when
-it is absent, pointing at ``sprezzature-ux-laws-audit``, which needs nothing. A
-test demanding exit 0 everywhere would be arguing against that design.
+One outcome is accepted: exit 0 with a help text that names the command. What
+is refused is everything else — a non-zero exit, a traceback, silence, or a
+usage line about a module.
+
+Why a refusal is no longer among them
+-------------------------------------
+Until 2026-10-25 the auditor was stdlib-only and ``click`` was an extra, so
+``sprezzature-ux-laws`` — the Click front door — correctly refused with exit 1
+and an install line pointing at ``sprezzature-ux-laws-audit``, which needed
+nothing. Demanding exit 0 then would have argued against the design. argparse
+is gone and click is a **base** dependency now, bought on purpose because no
+parser ships with Python any more, so there is nothing left for a front door to
+be missing.
+
+What the tolerance had become was measured here on 2026-10-31. With
+``sprezzature_ux_laws.cli`` made to exit 1 printing exactly what the tolerance
+asked for — ``pip install 'sprezzature-ux-laws[click]'``, no traceback — the
+old file passed **every one of its four cases**. A refusal has to name the
+distribution to be useful, this package's Click front door is named after the
+distribution, so the one assertion left standing, that the help names the
+command, was satisfied by the refusal message itself. The front door could
+break completely and this suite would have reported green.
+
+The premise that makes exit 0 the right demand is asserted just below rather
+than assumed, so the day click moves back under
+``[project.optional-dependencies]`` it fails there and names what to revisit.
 
 Author
 ------
@@ -81,6 +102,59 @@ def _run(command: str, module: str, function: str) -> subprocess.CompletedProces
     return subprocess.run([sys.executable, "-c", code], capture_output=True, text=True)
 
 
+#: The ``[project]`` table proper — where base ``dependencies`` live, as
+#: opposed to the ``name = [...]`` entries of ``[project.optional-dependencies]``.
+_PROJECT_BLOCK = re.compile(r"^\[project\]\n(.*?)(?=^\[|\Z)", re.M | re.S)
+_BASE_DEPENDENCIES = re.compile(r"^dependencies\s*=\s*\[(.*?)\]", re.M | re.S)
+_OPTIONAL_BLOCK = re.compile(r"^\[project\.optional-dependencies\]\n(.*?)(?=^\[|\Z)", re.M | re.S)
+#: ``click>=8.1`` -> ``click``. A distribution name, stripped of its specifier.
+_DISTRIBUTION = re.compile(r"[A-Za-z0-9][A-Za-z0-9._-]*")
+
+
+def _manifest() -> str:
+    """The manifest as text. Read rather than parsed: ``tomllib`` is 3.11+.
+
+    This package supports 3.10, where importing it at module scope would raise
+    at **collection** and take every case in the file down with it.
+    """
+    return (REPO_ROOT / "pyproject.toml").read_text(encoding="utf-8")
+
+
+def test_the_front_door_library_is_a_base_dependency() -> None:
+    """The premise of the case below: ``--help`` has nothing to refuse over.
+
+    See the file docstring. This holds the tolerance that used to be in that
+    case, so the day it stops being true is the day this fails and says so.
+    """
+    text = _manifest()
+    project = _PROJECT_BLOCK.search(text)
+    assert project is not None, f"{PACKAGE}/pyproject.toml has no [project] table"
+
+    declared = _BASE_DEPENDENCIES.search(project.group(1))
+    base = {
+        match.group(0).lower()
+        for line in (declared.group(1).splitlines() if declared else [])
+        if (match := _DISTRIBUTION.match(line.strip().strip("\"'")))
+    }
+    assert "click" in base, (
+        f"click is not a base dependency of {PACKAGE} any more (base: "
+        f"{sorted(base)}). The case below demands exit 0 from every command "
+        f"because every front door's library is always installed. If click "
+        f"went back to being an extra, that demand is wrong and the refusal "
+        f"branch removed on 2026-10-31 is what should come back."
+    )
+
+    optional = _OPTIONAL_BLOCK.search(text)
+    extras = (
+        re.findall(r"^([\w.-]+)\s*=\s*\[", optional.group(1), re.M) if optional else []
+    )
+    assert "click" not in extras, (
+        f"{PACKAGE} declares both a base click and a [click] extra. Every "
+        f"README line reading pip install '{PACKAGE}[click]' then documents an "
+        f"extra that installs what the package already pulls in."
+    )
+
+
 def test_the_manifest_declares_commands() -> None:
     """An empty table would make every case below vacuous."""
     found = _commands()
@@ -114,14 +188,11 @@ def test_the_command_starts_and_names_itself(
     )
     assert output.strip(), f"{command} --help printed nothing (exit {proc.returncode})"
 
-    if proc.returncode != 0:
-        # The one legitimate refusal: a front door whose own library is an
-        # extra. It has to say which one, or the reader is stuck holding a
-        # command that will not run and no way to find out why.
-        assert "pip install" in output, (
-            f"{command} --help exited {proc.returncode} without naming an "
-            f"install that would fix it:\n{output}"
-        )
+    assert proc.returncode == 0, (
+        f"{command} --help exited {proc.returncode}. Every library a front "
+        f"door needs is a base dependency, so there is nothing left for it to "
+        f"refuse over:\n{output}"
+    )
 
     assert command in output, (
         f"{command} --help does not name {command}. A usage line that names "
