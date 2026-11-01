@@ -24,9 +24,10 @@ judgement no linter holds. The findings are prompts for a designer, not
 verdicts — which is why every one of them is a warning rather than an error
 unless it breaks something measurable, like a hit area below 44 px.
 
-Install the extra to get the runtime dependencies::
+FastAPI and uvicorn are base dependencies since 2026-11-01, so there
+is no extra to ask for::
 
-    pip install 'sprezzature-ux-laws[api]'
+    pip install 'sprezzature-ux-laws'
 
 Then run the app with any ASGI server::
 
@@ -51,8 +52,10 @@ try:
     from fastapi.responses import RedirectResponse
 except ImportError as exc:  # pragma: no cover - dependency guard
     raise ImportError(
-        "The FastAPI HTTP surface requires the [api] extra. "
-        "Install with: pip install 'sprezzature-ux-laws[api]'"
+        "The FastAPI HTTP surface could not import fastapi, which is a base "
+        "dependency since 2026-11-01 -- so this is a broken install rather "
+        "than a missing extra. Reinstall with: "
+        "pip install 'sprezzature-ux-laws'"
     ) from exc
 
 from pydantic import BaseModel, Field

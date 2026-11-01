@@ -64,7 +64,7 @@ desktop-only. Over-reporting sends somebody to look; under-reporting ships.
 
 ```bash
 pip install sprezzature-ux-laws               # the auditor, and click for the command line
-pip install "sprezzature-ux-laws[api,mcp]"    # + the HTTP and agent surfaces
+pip install "sprezzature-ux-laws"    # + the HTTP and agent surfaces
 ```
 
 That the auditor itself is **standard library only** is the point of it,

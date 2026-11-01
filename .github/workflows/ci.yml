@@ -39,7 +39,7 @@ jobs:
           # The package editable, with the surfaces it advertises: without
           # [api,mcp] every test of api.py and mcp.py skipped, and CI was
           # green on code nobody ran.
-          pip install -e ".[api,mcp]" -r requirements-dev.txt
+          pip install -e "." -r requirements-dev.txt
       - name: Ruff
         run: ruff check .
       # The type half of the gate. Added after running mypy by hand found

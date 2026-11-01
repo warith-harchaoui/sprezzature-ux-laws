@@ -71,7 +71,7 @@ laisse passer.
 
 ```bash
 pip install sprezzature-ux-laws               # l'auditeur, et click pour la ligne de commande
-pip install "sprezzature-ux-laws[api,mcp]"    # + les surfaces HTTP et agent
+pip install "sprezzature-ux-laws"    # + les surfaces HTTP et agent
 ```
 
 Que l'auditeur lui-même tienne dans la **bibliothèque standard** est tout

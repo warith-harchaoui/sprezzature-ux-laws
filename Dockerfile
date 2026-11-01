@@ -8,7 +8,7 @@ COPY . .
 # built an image that could not serve the thing its own CMD named: fastapi and
 # uvicorn live behind the `api` extra precisely so that nobody installing the
 # library pays for them, so an image that serves has to ask for it.
-RUN pip install --no-cache-dir ".[api,mcp]"
+RUN pip install --no-cache-dir "."
 
 EXPOSE 8000
 
