@@ -4,6 +4,8 @@ All notable changes to sprezzature-ux-laws are documented here.
 
 ## [Unreleased]
 
+## [1.4.0] — 2026-11-04: click everywhere, and two refusals
+
 ### Changed
 
 - **Click is the only parser, for every command.** `sprezzature-ux-laws-audit`
