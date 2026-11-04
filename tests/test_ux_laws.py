@@ -604,3 +604,51 @@ def test_a_clock_time_in_an_attribute_still_warns() -> None:
     assert [f for f in audit_html(page) if f.law == "tesler"], (
         "a clock time in an attribute with no timezone is still a finding"
     )
+
+
+def test_an_unknown_slug_in_ignore_is_refused_like_one_in_only(
+    tmp_path: Path, capsys
+) -> None:
+    """``--ignore`` with a misspelt slug exits 2, the same as ``--only``.
+
+    It used to be accepted and skip nothing: the law the caller meant to
+    silence still ran, and nothing said the flag had been ignored.
+    """
+    from audit_laws_of_ux import main
+
+    page = tmp_path / "page.html"
+    page.write_text("<p>ok</p>", encoding="utf-8")
+
+    assert main(["--only", "bogus", str(page)]) == 2
+    only_err = capsys.readouterr().err
+    assert main(["--ignore", "bogus", str(page)]) == 2
+    ignore_err = capsys.readouterr().err
+    assert ignore_err == only_err == "audit_laws_of_ux: unknown law(s): bogus\n"
+
+
+def test_the_click_command_refuses_an_unknown_ignore_too(tmp_path: Path) -> None:
+    """The click command hands ``--ignore`` to the same handler."""
+    from click.testing import CliRunner
+
+    from sprezzature_ux_laws.cli import main as click_main
+
+    page = tmp_path / "page.html"
+    page.write_text("<p>ok</p>", encoding="utf-8")
+    result = CliRunner().invoke(click_main, ["--ignore", "bogus", str(page)])
+    assert result.exit_code == 2
+
+
+def test_a_missing_path_is_refused_by_the_per_tool_script(
+    tmp_path: Path, capsys
+) -> None:
+    """``sprezzature-ux-laws-audit`` exits 2 on a path that does not exist.
+
+    The click command already did (``click.Path(exists=True)``); the per-tool
+    script skipped the target with a warning and exited 0, so a typo in a CI
+    target made the gate pass on nothing.
+    """
+    from audit_laws_of_ux import main
+
+    missing = tmp_path / "nope.html"
+    assert main([str(missing)]) == 2
+    assert "no such file or directory" in capsys.readouterr().err

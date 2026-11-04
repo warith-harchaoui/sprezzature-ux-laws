@@ -2,89 +2,115 @@
 
 When to audit an interface against the Laws of UX, and what to call.
 
-This file is written for an agent — a Claude Code / OpenCode skill, an MCP
-host, anything choosing a tool on someone's behalf. Humans are welcome, but
-the routing rules below are the point.
+This file is written for an agent: a Claude Code or OpenCode skill, a Model Context
+Protocol (MCP) host, anything choosing a tool on someone's behalf. Humans are welcome,
+but the routing rules below are the point.
 
 ---
 
 ## The generalisation, stated once
 
-> **A complaint about how an interface *feels* is the trigger.** Nobody
-> names a law. They say "this page is overwhelming", "why does this feel
-> slow", "there's too much going on", "I can never find the button", « c'est
-> confus », « il y a trop de choix ». Those sentences are usability
-> findings in plain clothes, and this is the tool that turns them into
-> located, named, fixable ones.
+> **Route on the domain's closed vocabulary, not on phrasings.** This package decides
+> eight named laws from HTML source. A request belongs here when it names, or when its
+> answer depends on, one of the objects those eight laws are about: the number of
+> **choices** in a `<nav>` or menu, the **columns** of a pricing or plans grid, an
+> unchunked **run of digits** (code, ID, card or phone number), a **clickable `<div>` or
+> `<span>`** standing in for a native control, the **hit area** of a target (44 px,
+> `min-h-11`), the **focus ring** (`focus-visible:ring-*`), a **status shown by colour
+> alone**, a **clock time without a timezone**. The words "Laws of UX", "usability
+> heuristic", or a law's own name (Hick, choice overload, Miller, Jakob, Fitts,
+> aesthetic-usability, selective attention, Tesler) route here too.
 
-The second trigger is silent, and is the one to remember: **you just wrote an
-interface.** A nav, a pricing table, a settings page, a form. Audit it before
-handing it over, the same way you would lint the markup.
+A complaint about how an interface feels ("too many options", "I keep missing the
+button") is the same request in plain clothes: map it to one of those objects, then
+route. If it maps to none of them, this tool has nothing to say about it.
 
----
+The second trigger is silent: **you just wrote HTML for an interface.** A nav, a pricing
+table, a settings page, a form. Audit it before handing it over, the same way you would
+lint the markup.
 
-## Which tool, and which neighbour
+### The vocabulary that routes elsewhere
 
-Three different questions get asked about the same page. Send each to the
-right place — they do not substitute for one another:
-
-| The question | Package | Tool |
+| The request is about | Package | Tool |
 |---|---|---|
-| **Is it usable?** too many choices, targets too small, no feedback | sprezzature-ux-laws | `audit_interface` |
-| **Is it accessible?** missing alt, unlabelled inputs, heading order | sprezzature-accessibility | `lint_html` |
-| **Is it legible?** contrast, colour-blind safety | sprezzature-colors | `check_contrast`, `simulate_color_blindness` |
+| choices, columns, digit runs, clickable divs, hit area, focus ring, colour-only status, timezone | sprezzature-ux-laws | `audit_interface` |
+| alt text, labels, heading order, ARIA, language attribute, WCAG rules | sprezzature-accessibility | `lint_html` |
+| contrast ratio, colour-vision deficiency, palette | sprezzature-colors | `check_contrast`, `simulate_color_blindness` |
+| response time, the Doherty threshold, real layout or real focus behaviour | none here | a browser tool such as Lighthouse |
+| the other 22 laws of lawsofux.com (Peak-End, Von Restorff, Goal-Gradient, Postel…) | none: vocabulary only | read `references/laws-of-ux.md` |
 
-A page can pass any one and fail the others. When someone asks a broad
-"review my UI", run all three and say which found what.
+A page can pass one and fail the others. When someone asks a broad "review my UI", run
+the first three and say which found what.
 
 ---
 
-## The eight laws, and the plain-language complaint each answers
+## Every tool, and the request it answers
 
-You do not need to name a law to route: `audit_interface` runs all eight by
-default. This table is for reading the *findings* back to a user in their own
-terms.
-
-| Law | The complaint it explains |
+| Tool | Request it answers |
 |---|---|
-| `hick` | "there are too many options", "this menu is enormous" |
-| `choice-overload` | "I can't decide", "this pricing table is overwhelming" |
-| `miller` | "I can't hold this in my head" — long unchunked numbers, codes, IDs |
-| `jakob` | "this doesn't work like everything else does" |
-| `fitts` | "the button is tiny", "I keep missing it", "it's too far away" |
-| `aesthetic-usability` | "it looks unfinished, so I don't trust it" |
-| `selective-attention` | "I never saw that", "the warning is invisible" |
-| `tesler` | "this is simple for me and horrible for support" — complexity moved, not removed |
+| `audit_interface` (`POST /v1/audit`) | "Audit this HTML against the Laws of UX", for all eight laws or a named subset. Returns findings with law, severity, line and message, and the error and warning counts. |
+| `list_laws` (`GET /v1/laws`) | "Which laws can you check?", and the exact slugs to pass before narrowing an audit. |
+| `health` (`GET /health`) | "Is the server up?" Only for diagnosing a connection. |
+| `sprezzature-ux-laws`, `sprezzature-ux-laws-audit` | Audit files or directories on disk, with `--json`, `--strict`, `--only`, `--ignore`; repair four laws with `--fix`, preview with `--fix --dry-run`. |
+| `sprezzature-ux-laws-mcp` | Start the HTTP app with the MCP endpoint at `/mcp`, so a host can call the three tools above. |
+| `audit_html`, `audit_file`, `fix_file` (Python) | The same audit and repair from inside a build step. |
+
+---
+
+## The eight laws, and the object each one inspects
+
+You do not need to name a law to route: `audit_interface` runs all eight by default.
+This table is for reading the findings back to a user in their own terms.
+
+| Slug | Object inspected | Severity | The complaint it explains |
+|---|---|---|---|
+| `hick` | top-level choices in one `<nav>`, per screen | error | "there are too many options", "this menu is enormous" |
+| `choice-overload` | columns of a pricing or plans grid | warning | "I can't decide", "this pricing table is overwhelming" |
+| `miller` | visible runs of 8 or more letters and digits | warning | "I can't hold this in my head" |
+| `jakob` | a `<div>` or `<span>` acting as a button | error | "this doesn't work like everything else does" |
+| `fitts` | hit area of interactive elements (Tailwind pages) | warning | "the button is tiny", "I keep missing it" |
+| `aesthetic-usability` | focus ring on interactive elements (Tailwind pages) | warning | "it looks unfinished", "I can't see where I am with the keyboard" |
+| `selective-attention` | a status `<span>` signalled by colour only | warning | "I never saw that", "the warning is invisible" |
+| `tesler` | `HH:MM` times without a timezone | warning | "what time is that, mine or theirs?" |
+
+On a page that does not use Tailwind CSS, `fitts` and `aesthetic-usability` each return
+one `info` finding for the document instead of per-element warnings.
 
 ---
 
 ## What to call, on every surface
 
-| Job | CLI | MCP tool |
-|---|---|---|
-| Audit markup | `sprezzature-ux-laws` (the auditor script) | `audit_interface` |
-| Which laws exist | — | `list_laws` |
+| Job | CLI | MCP tool (= `operation_id`) | HTTP route | Python |
+|---|---|---|---|---|
+| Audit markup | `sprezzature-ux-laws PATH…` or `sprezzature-ux-laws-audit PATH…` | `audit_interface` | `POST /v1/audit` | `audit_html`, `audit_file` |
+| Repair the mechanical laws | `sprezzature-ux-laws PATH --fix` (`--dry-run` to preview) | none | none | `fix_file` |
+| Which laws exist | `sprezzature-ux-laws --help` (lists the slugs) | `list_laws` | `GET /v1/laws` | `LAWS`, `LAW_REGISTRY` |
+| Is the server up | none | `health` | `GET /health` | none |
+| Serve the tools | `sprezzature-ux-laws-mcp` | none | none | none |
 
-Narrowing to a subset is possible but rarely wise — and if you do it, take
-the ids from `list_laws`: a law id that does not exist selects nothing, so a
-guessed name silently runs no check.
+Repair is a command-line and Python job only: no route or MCP tool writes files.
+
+Narrowing to a subset is possible but rarely useful. If you do it, take the slugs from
+`list_laws`: an unknown slug is refused (HTTP 400 on the API, exit code 2 for `--only` or
+`--ignore` on the command line), so a guessed name fails loudly rather than running
+nothing.
 
 ---
 
-## What this cannot see — say so when you report
+## What this cannot see: say so when you report
 
-The auditor reads markup. It counts choices, measures targets, looks for the
-feedback a slow action should give. It cannot watch anybody use the page, so
-it finds mechanical mistakes and says nothing about whether the design is
-right. Eight laws are checkable this way out of a field that is much larger
-and mostly judgement.
+The auditor reads markup. It counts choices, reads class names, matches text patterns.
+It cannot watch anybody use the page and it does not measure response time, so it finds
+mechanical mistakes and says nothing about whether the design is right. Eight laws are
+checkable this way out of the thirty on lawsofux.com.
 
-Report findings as evidence, never as a verdict. "Nothing fired" means
-exactly that — not "this interface is good".
+Report findings as evidence, never as a verdict. "Nothing fired" means exactly that,
+not "this interface is good".
 
 ---
 
 ## File patterns
 
-`*.html` routes here when a usability concern is expressed — and, per the
-generalisation above, when such a file was just written.
+`*.html` and `*.htm` route here when one of the objects above is in question, and, per
+the generalisation, when such a file was just written. A directory target is searched
+for `*.html` only.

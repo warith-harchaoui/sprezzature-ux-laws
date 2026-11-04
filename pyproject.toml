@@ -46,7 +46,11 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-dev = ["pytest>=8.0", "ruff", "mypy"]
+# The same toolchain as requirements-dev.txt, which the CI installs and which
+# explains both bounds: mypy is held below 3, and httpx2 is what starlette's
+# TestClient needs from 1.9 on. The extra had neither, so `.[dev]` could
+# resolve a mypy a major apart or a TestClient that does not import.
+dev = ["pytest>=8.0", "ruff", "mypy>=1.11,<3", "httpx2>=2.0.0"]
 [project.scripts]
 # The auditor is this package's reason to exist and it had no console script:
 # the README told readers to run `python scripts/audit_laws_of_ux.py`, a path
@@ -55,9 +59,10 @@ dev = ["pytest>=8.0", "ruff", "mypy"]
 # ran `pip install sprezzature-ux-laws` could reach the MCP server and nothing
 # else.
 sprezzature-ux-laws-audit = "sprezzature_ux_laws_scripts.audit_laws_of_ux:main"
-# The click twin, over the same flags and the same handler. argparse because
-# it is in the standard library and therefore always there; click because
-# somebody whose other tools are click commands expects this one to be too.
+# The click command, over the same flags and the same handler as the per-tool
+# script above. The per-tool script still parses with argparse (through
+# scripts/_argparse.py, a file synced from the hub); this one is click, the
+# suite's command-line parser since 2026-10-25.
 sprezzature-ux-laws = "sprezzature_ux_laws.cli:main"
 sprezzature-ux-laws-mcp = "sprezzature_ux_laws.mcp:main"
 

@@ -40,7 +40,7 @@ different angles.
 
 - **You want a pre-commit hook, not a report.** The median page of this suite's own
   site, about 20 kilobytes, audits in roughly five milliseconds, with no browser to
-  start and nothing to install beyond Python and click. A gate that costs nothing runs
+  start and one `pip install` (the auditor itself uses the standard library only). A gate that costs nothing runs
   every time; one that costs thirty seconds gets disabled.
 - **You need the same verdict twice.** The checks are pure text analysis. No model, no
   network, no sampling. The build that failed yesterday fails today for the same reason,

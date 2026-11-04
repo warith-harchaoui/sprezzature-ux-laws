@@ -2,6 +2,75 @@
 
 All notable changes to sprezzature-ux-laws are documented here.
 
+## [Unreleased]
+
+### Fixed
+
+- **`--ignore` with an unknown slug is refused**, with exit code 2 and the
+  same `unknown law(s)` message as `--only`. It used to be accepted and skip
+  nothing, so the law it meant to silence still ran. Both commands share the
+  handler, so both now refuse it.
+- **`sprezzature-ux-laws-audit` refuses a path that does not exist** (exit 2),
+  as the click command already did. It skipped the target with a warning and
+  exited 0, so a typo in a CI target turned the gate green.
+- **The `[dev]` extra matches `requirements-dev.txt`**: mypy bounded to
+  `>=1.11,<3`, and httpx2 added for starlette's TestClient. Both were in the
+  file the CI installs and missing from the extra.
+
+Three regression tests in `tests/test_ux_laws.py`.
+
+### Docs
+
+The documentation now says what the code does, checked against the code and
+by running every command it shows.
+
+- **README.md and LISEZMOI.md.** The laws table described checks that do not
+  exist: Jakob flagged "non-conventional patterns" (it flags a `<div>` or
+  `<span>` acting as a button), Selective attention "elements styled like ads"
+  (a status shown by colour alone), Tesler "irreducible complexity" (a clock
+  time with no timezone), Choice overload "long option lists" (a pricing or
+  plans grid with more than four columns). The table now gives each slug, its
+  severity, its exact trigger and whether it has a fixer. The install section
+  showed the same `pip install` twice and still said "everything heavier is an
+  extra"; there is one install and `[dev]` is the only extra. Added what was
+  missing: the `info` severity and the Tailwind precondition of Fitts and
+  aesthetic-usability, the exemptions of each check (including the acronym
+  guard that keeps `GMTED2010` whole), the full list of Hick grouping
+  containers, every flag, the exit codes 0, 1 and 2, what `--fix` writes, the
+  HTTP routes with their `operation_id`, Docker and compose, the MCP server
+  and its options, and where the skill ships from.
+- **TRIGGERS.md.** Routing now rests on the closed vocabulary of the eight
+  laws rather than on sample phrasings. It claimed that an unknown law id
+  "silently runs no check"; the API answers 400 and the command line exits 2.
+  It listed one command for two and left out `sprezzature-ux-laws-audit`,
+  `sprezzature-ux-laws-mcp` and the `health` tool, and it said the auditor
+  "looks for the feedback a slow action should give", which no check does.
+- **EXAMPLES.md.** The fixture had a single Tailwind utility, so the Fitts and
+  aesthetic-usability findings shown never appeared: the auditor reports one
+  `info` per check instead. The fixture now carries two, and every output
+  shown was rerun. The `--fix` output was labelled stderr though half of it is
+  stdout.
+- **references/laws-of-ux.md.** Said it restated each of the 30 laws and held
+  29: Fitts's Law, one of the eight the auditor checks, was missing. Pointed at
+  `ux-psychology.md` and `anti-patterns.md` as if they were here; they belong
+  to `sprezzature-ui`. Surnames are now in capitals.
+- **CONTRIBUTING.md.** The setup line installed the test tools and not the
+  package. It now matches the CI, and the steps for a new law name every place
+  that has to learn it.
+- **LANDSCAPE.md and PAYSAGE.md.** "Nothing to install beyond Python and
+  click" predates the single install.
+- **Comments.** `requirements.txt` said "No runtime dependencies"; the
+  `[project.scripts]` comment in `pyproject.toml` presented argparse as the
+  click command's twin by choice.
+- **Docstrings and comments.** `mcp.py` named three tools from
+  `sprezzature-colors` (`check_contrast`, `simulate_color_blindness`,
+  `get_palette`) and argued for colour checks. `api.py` said every finding is
+  a warning unless a hit area is too small (Fitts is a warning; Hick and Jakob
+  are the errors), and its per-law notes served by `list_laws` described
+  checks that do not exist. The auditor's docstring named two severities out
+  of three and a `references/checklist.md` that is not in this repository. The
+  `Dockerfile` comment still spoke of an `api` extra.
+
 ## [1.3.0] — 2026-11-01: one `pip install`
 
 ### Changed — one `pip install`

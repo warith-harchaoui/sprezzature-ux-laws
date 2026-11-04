@@ -5,8 +5,12 @@
 ```bash
 git clone https://github.com/warith-harchaoui/sprezzature-ux-laws
 cd sprezzature-ux-laws
-pip install -r requirements-dev.txt
+pip install -e . -r requirements-dev.txt
 ```
+
+This is the install the CI runs: the package itself in editable mode, plus
+the test toolchain listed in `requirements-dev.txt` (pytest, ruff, mypy,
+httpx2). `pip install -e ".[dev]"` installs the same toolchain.
 
 ## Tests
 
@@ -24,6 +28,16 @@ wrong quote style, and the like) in one fast pass.
 ruff check .
 ```
 
+## Types
+
+The CI also runs mypy, in two invocations because `scripts/` imports its
+siblings by bare name:
+
+```bash
+mypy sprezzature_ux_laws
+mypy scripts
+```
+
 ## Adding a law check
 
 1. Add a `check_<law_name>(walker, path)` (or `check_<law_name>(path,
@@ -34,14 +48,19 @@ ruff check .
    register it in `LAW_FIXERS`.
 4. Add a test in `tests/test_ux_laws.py`: at least one file that should
    trigger the finding, one that should not.
-5. Document the law in the table in `README.md` / `LISEZMOI.md`, and add
-   a sourced entry to `references/laws-of-ux.md` if the law is not
-   already covered there.
+5. Add a one-line note for it in `_LAW_NOTES` in
+   `sprezzature_ux_laws/api.py`, which `GET /v1/laws` and the `list_laws`
+   MCP tool serve.
+6. Document the law in the tables of `README.md`, `LISEZMOI.md` and
+   `TRIGGERS.md`, add its name to the "mechanically-detectable violations"
+   list in `references/laws-of-ux.md` (a test compares that list with
+   `LAW_REGISTRY`), and add a sourced entry there if the law is not already
+   covered.
 
 ## Code standards
 
 See `CODING.md`. NumPy docstrings, full typing, ~25-30% comment
-density, stdlib only.
+density, standard library only in the auditor.
 
 ## Prose standards
 

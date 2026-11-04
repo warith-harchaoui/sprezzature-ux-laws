@@ -11,19 +11,20 @@ Un auditeur statique des **Laws of UX** (lois de l'ergonomie
 cognitive) pour du HTML.
 
 Les Laws of UX sont des heuristiques nommées, issues de la psychologie
-et de la recherche en interaction homme-machine. La loi de Hick, par
+et de la recherche en interaction homme-machine, rassemblées par Jon
+YABLONSKI sur [lawsofux.com](https://lawsofux.com/). La loi de Hick, par
 exemple, dit qu'un écran qui propose plus de choix demande plus de
-temps pour se décider : un menu de navigation avec quarante liens est
+temps pour se décider : un menu de navigation avec quarante liens est
 mesurablement plus difficile à utiliser qu'un menu qui en propose sept.
 Cet outil ne voit jamais la page une fois affichée, et n'observe jamais
-un vrai utilisateur ; il lit le texte HTML brut et signale seulement
+un vrai utilisateur. Il lit le texte HTML brut et signale seulement
 les manquements qu'on peut trancher à sa seule lecture, par exemple
 compter les liens dans une balise `<nav>`. Ce choix le rend rapide et
-suffisamment prévisible pour tourner dans un hook pre-commit ou une
-étape de CI, au prix de ne détecter qu'une fraction des violations de
-chaque loi, celle qu'une lecture de texte peut effectivement voir (la
-définition complète et sourcée de chaque loi vit dans
-[`references/laws-of-ux.md`](references/laws-of-ux.md)).
+assez prévisible pour tourner dans un crochet de pré-commit ou une
+étape d'intégration continue (CI), au prix de ne détecter qu'une
+fraction des violations de chaque loi, celle qu'une lecture de texte
+peut effectivement voir. La définition complète et sourcée de chaque
+loi vit dans [`references/laws-of-ux.md`](references/laws-of-ux.md).
 
 ## Comment ça marche
 
@@ -31,38 +32,67 @@ définition complète et sourcée de chaque loi vit dans
 
 ## Lois couvertes
 
-| Loi | Ce qu'elle détecte |
-|---|---|
-| **Loi de Hick** | Trop de choix présentés d'un coup (menu / nav trop long). |
-| **Surcharge de choix** | Longues listes d'options sans regroupement ni valeur par défaut. |
-| **Loi de Miller** | Suites de chiffres non regroupées (numéros de téléphone, codes) au-delà d'environ 7 éléments. |
-| **Loi de Jakob** | Motifs non conventionnels là où un motif familier était attendu. |
-| **Loi de Fitts** | Contrôles interactifs sans zone de clic d'au moins 44 px (`min-h-11`). |
-| **Effet esthétique-utilisabilité** | Éléments interactifs sans anneau de focus visible. |
-| **Attention sélective** | Éléments stylés comme des publicités mais porteurs d'un vrai contenu. |
-| **Loi de Tesler** | Complexité irréductible reportée sur l'utilisateur. |
+Huit lois, dans l'ordre où les vérifications tournent. L'identifiant est le nom que
+toutes les surfaces emploient.
 
-## Comment il compte : des choix, pas des éléments
+| Identifiant | Loi | Sévérité | Ce qui la déclenche | Correcteur |
+|---|---|---|---|---|
+| `hick` | Loi de Hick | error | Un `<nav>` qui montre plus de 7 choix de premier niveau (`<a>` ou `<button>`) sur un même écran (voir plus bas) | non |
+| `choice-overload` | Surcharge de choix | warning | Une `<section>` ou un `<div>` dont les classes contiennent `pricing` ou `plans` et `grid` ou `flex`, avec plus de 4 colonnes directes `<article>` ou `<div>` | non |
+| `miller` | Loi de Miller | warning | Une suite visible de 8 lettres et chiffres ou plus, dont au moins un chiffre (codes, identifiants, numéros de carte) | oui |
+| `jakob` | Loi de Jakob | error | Un `<div>` ou un `<span>` portant `onclick`, `role="button"` ou `cursor-pointer`, sans enfant `<button>`, `<a>`, `<input>`, `<select>` ou `<summary>` | oui |
+| `fitts` | Loi de Fitts | warning | Un élément interactif sans classe `h-`, `min-h-` ou `size-` d'au moins `11` (44 px), ou `full`, `screen`, `auto` | oui |
+| `aesthetic-usability` | Effet esthétique-utilisabilité | warning | Un élément interactif sans classe `focus-visible:ring-*` ni `focus:ring-*` | oui |
+| `selective-attention` | Attention sélective | warning | Un `<span>` coloré `text-red-*`, `text-green-*`, `text-amber-*`, `text-yellow-*` ou `text-orange-*`, sans mot d'état (« error », « ok », « pending »…) ni enfant `<svg>` ou `<img>` | non |
+| `tesler` | Loi de Tesler | warning | Une heure `HH:MM` sans marqueur de fuseau (`UTC`, `GMT`, `Z`, `+02:00`, `Europe/Paris`…) à moins de 40 caractères | non |
+
+Les éléments interactifs sont `<button>`, `<a>`, `<input>`, `<select>`, `<textarea>` et
+`<summary>`. Ce que chaque vérification laisse passer :
+
+- **Miller** ignore le texte des blocs `<script>` et `<style>`, les valeurs de `class`,
+  `id`, `href` et `src`, les mots purement alphabétiques, et les noms formés d'au moins
+  trois lettres suivies de chiffres seulement (`GMTED2010`, `LANDSAT8`, `ISO14001`) :
+  ce sont des noms de normes ou de jeux de données, que le correcteur couperait sinon
+  d'espaces insécables.
+- **Jakob** laisse aussi passer un `<span>` ou un `<div>` stylé à l'intérieur d'un
+  `<label>` qui contient un `<input>`, un `<select>` ou un `<textarea>` : c'est le
+  contrôle de formulaire qui porte la sémantique.
+- **Fitts** ignore `<input type="hidden">`, et traite un `<a>` comme un lien de texte
+  plutôt que comme un bouton, sauf s'il porte `inline-flex`, `flex`, `block`, `btn`,
+  `button`, ou une classe `bg-` ou `border-`.
+- **Tesler** ignore une heure placée dans un contexte de durée : les mots `duration`,
+  `elapsed`, `remaining`, `currentTime`, `runtime`, `length`, un attribut `data-ra-`, une
+  classe `ra-time`, un curseur `type="range"`, `<progress>`, `<audio>` ou `<video>`. Une
+  position de lecture n'a pas de fuseau horaire.
+
+**Fitts et esthétique-utilisabilité lisent l'échelle de Tailwind**, donc elles
+demandent d'abord si le document emploie Tailwind CSS : au moins deux utilitaires
+propres à Tailwind et distincts, comme `px-4` et `bg-blue-600`. Sinon, chacune des deux
+rend un seul constat `info` pour tout le document au lieu d'un avertissement par
+élément, et `--fix` n'y écrit aucune classe Tailwind.
+
+## Comment il compte : des choix, pas des éléments
 
 La loi de Hick mesure les choix qu'une personne affronte **au même instant**.
 Compter les liens d'un fichier se trompe donc deux fois.
 
 **Un en-tête responsive contient deux menus.** Une rangée marquée
 `hidden sm:inline` et un bouton marqué `sm:hidden` ne s'affichent jamais
-ensemble : le lecteur sur téléphone voit l'un, celui sur ordinateur voit
+ensemble : le lecteur sur téléphone voit l'un, celui sur ordinateur voit
 l'autre. Les additionner reproche au lecteur des choix qu'aucun écran ne lui
 montre. L'auditeur résout donc la visibilité de chaque contrôle d'après ses
 classes d'affichage Tailwind, en remontant les ancêtres (un conteneur qui
 masque son sous-arbre l'emporte sur un enfant qui s'afficherait), puis retient
 le pire des deux comptes en disant lequel.
 
-**Un groupe vaut un choix.** Un `<details>`, un `<menu>`, un
-`role="radiogroup"` ou un `role="tablist"` replie plusieurs contrôles en une
-seule décision. Chacun compte pour un, quel que soit son contenu.
+**Un groupe vaut un choix.** Un `<details>`, un `<dialog>`, un `<menu>`, ou un
+élément dont le `role` vaut `radiogroup`, `tablist`, `menubar`, `listbox` ou
+`combobox` replie plusieurs contrôles en une seule décision. Chacun compte pour un,
+quel que soit son contenu. Deux `<nav>` d'une même page sont comptés à part.
 
-Quand les deux états sont ambigus, le compte monte plutôt qu'il ne descend :
+Quand les deux états sont ambigus, le compte monte plutôt qu'il ne descend :
 un contrôle qui apparaît à `md` et disparaît à `lg` est traité comme réservé
-au bureau. Signaler de trop envoie quelqu'un vérifier ; signaler trop peu
+au bureau. Signaler de trop envoie quelqu'un vérifier ; signaler trop peu
 laisse passer.
 
 ---
@@ -70,37 +100,83 @@ laisse passer.
 ## Installation
 
 ```bash
-pip install sprezzature-ux-laws               # l'auditeur, et click pour la ligne de commande
-pip install "sprezzature-ux-laws"    # + les surfaces HTTP et agent
+pip install sprezzature-ux-laws
 ```
 
-Que l'auditeur lui-même tienne dans la **bibliothèque standard** est tout
-son intérêt, et la raison pour laquelle il est assez bon marché pour un
-crochet de pré-commit : quelques millisecondes, aucun navigateur. L'unique
-dépendance de base est click, achetée exprès pour la ligne de commande,
-puisqu'avec argparse parti plus aucun analyseur n'est livré avec Python. Tout
-ce qui est plus lourd est un extra, nommé d'après ce qui en a besoin.
+Une seule installation donne toutes les surfaces : la bibliothèque, les deux
+commandes, l'API HTTP et le serveur MCP. Les dépendances de base sont click (la ligne
+de commande), FastAPI, uvicorn, fastapi-mcp et mcp. Il n'y a aucun extra de
+fonctionnalité. Le seul extra, `[dev]`, est l'outillage de test (pytest, ruff, mypy).
 
-## Utilisation
+L'auditeur lui-même n'emploie que la bibliothèque standard de Python (`html.parser`),
+sans navigateur ni réseau, ce qui le rend assez bon marché pour un crochet de
+pré-commit.
+
+## Ligne de commande
 
 ```bash
 # Auditer un fichier ou une arborescence complète
-sprezzature-ux-laws-audit public/index.html
-sprezzature-ux-laws-audit site/ --json
+sprezzature-ux-laws public/index.html
+sprezzature-ux-laws site/ --json
 
-# Se restreindre à certaines lois, ou corriger automatiquement les cas mécaniques
-sprezzature-ux-laws-audit page.html --only fitts,jakob
-sprezzature-ux-laws-audit page.html --fix
+# Se restreindre à certaines lois, ou en écarter
+sprezzature-ux-laws page.html --only fitts,jakob
+sprezzature-ux-laws page.html --ignore tesler
+
+# Réparer sur place les cas mécaniques, ou prévisualiser la réparation
+sprezzature-ux-laws page.html --fix
+sprezzature-ux-laws page.html --fix --dry-run
 ```
 
-`sprezzature-ux-laws` est la même chose à travers click, avec les mêmes
-drapeaux et le même gestionnaire — prenez celle qui ressemble au reste de vos
-outils. Depuis un clone, sans rien installer, ça s'écrit
-`python scripts/audit_laws_of_ux.py page.html`.
+Deux commandes installées prennent les mêmes cibles et les mêmes drapeaux, et
+appellent le même gestionnaire : `sprezzature-ux-laws` (click) et
+`sprezzature-ux-laws-audit` (le script propre à l'outil). Depuis un clone, sans rien
+installer, `python scripts/audit_laws_of_ux.py page.html` appelle ce même
+gestionnaire.
 
-Les constats sont de sévérité `error` ou `warning` ; le programme
-sort avec un code non nul dès qu'une `error` est présente, ce qui
-s'intègre proprement dans une CI.
+| Drapeau | Effet |
+|---|---|
+| `--json` | Écrit un tableau JSON, un objet par constat (`law`, `severity`, `path`, `line`, `message`, `snippet`), au lieu du rapport texte. |
+| `--strict` | Tout constat fait échouer l'exécution, quelle que soit sa sévérité. |
+| `--only LOIS` | Identifiants à exécuter, séparés par des virgules. Par défaut : les huit. |
+| `--ignore LOIS` | Identifiants à écarter, séparés par des virgules. |
+| `--fix` | Applique sur place les corrections mécaniques. |
+| `--dry-run` | Dit ce que `--fix` appliquerait, sans rien écrire. Implique `--fix`. |
+| `--version` | Affiche la version (`-V` marche aussi pour `sprezzature-ux-laws-audit`). |
+
+Une cible est un fichier `.html` ou `.htm`, ou un dossier parcouru récursivement à la
+recherche de `*.html`. Tout autre fichier existant est ignoré avec un avertissement.
+Un chemin qui n'existe pas est refusé par les deux commandes (code `2`).
+
+Codes de sortie :
+
+- `0` : aucun constat `error` (avec `--strict`, aucun constat du tout), ou aucun
+  fichier HTML trouvé. Un `--dry-run` sort toujours avec `0`.
+- `1` : au moins un constat `error` (avec `--strict`, au moins un constat).
+- `2` : un identifiant inconnu dans `--only` ou `--ignore`, un chemin qui n'existe
+  pas, ou une autre erreur d'usage.
+
+Les constats sortent dans l'ordre des vérifications, pas dans l'ordre des lignes.
+
+### Ce que `--fix` modifie
+
+Quatre lois ont un correcteur. Les quatre autres (`hick`, `choice-overload`,
+`selective-attention`, `tesler`) demandent une décision de conception, pas une
+retouche de texte.
+
+| Loi | Retouche |
+|---|---|
+| `fitts` | Ajoute `min-h-11` à l'attribut `class` de l'élément. |
+| `aesthetic-usability` | Ajoute `focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-blue`. |
+| `miller` | Coupe la suite en groupes de quatre depuis la droite, joints par des espaces insécables. |
+| `jakob` | Réécrit un `<div>` ou un `<span>` tenant sur une ligne en `<button>`, et retire `role="button"`. |
+
+Le correcteur réaudite et recommence, jusqu'à cinq passes, parce que réécrire un
+`<div>` en `<button>` crée de nouveaux constats Fitts et anneau de focus. Une seconde
+exécution sur un fichier réparé n'applique aucune retouche. Un correcteur ne fait
+qu'étendre un attribut `class` existant : un élément qui n'en a pas est compté comme
+non corrigeable et reste parmi les constats restants. `--fix` réécrit la page :
+relisez le diff avant de le committer.
 
 ## Depuis Python
 
@@ -110,23 +186,74 @@ from pathlib import Path
 import sprezzature_ux_laws as ux
 
 for constat in ux.audit_html("<nav>" + '<a href="/">x</a>' * 12 + "</nav>"):
-    print(constat.law, constat.message)
+    print(constat.law, constat.severity, constat.message)
 
 ux.audit_file(Path("public/index.html"), laws={"fitts", "jakob"})
-ux.fix_file(Path("page.html"), laws=set(ux.LAWS), dry_run=True)
+appliquees, non_corrigeables, restants = ux.fix_file(Path("page.html"), laws=set(ux.LAWS), dry_run=True)
 ```
 
-`ux.LAWS` est le tuple de toutes les lois connues, dans l'ordre où les
-vérifications tournent — la même liste que la ligne de commande utilise pour
-valider `--only` et que l'API HTTP publie, lue à un seul endroit pour que les
-quatre surfaces ne puissent pas se contredire.
+Le paquet exporte `audit_html`, `audit_file`, `fix_file`, `Finding`, `Walker`,
+`Element`, `LAW_REGISTRY`, `LAWS` et `FITTS_FIX_TOKEN`. `ux.LAWS` est le tuple des
+huit identifiants, dans l'ordre où les vérifications tournent : la ligne de commande
+valide `--only` contre ce même registre, et l'API HTTP le publie.
+
+## API HTTP
+
+```bash
+uvicorn sprezzature_ux_laws.api:app --host 127.0.0.1 --port 8000
+```
+
+| Méthode et chemin | `operation_id` | Réponse |
+|---|---|---|
+| `GET /health` | `health` | `{"status": "ok"}` |
+| `GET /v1/laws` | `list_laws` | Les huit identifiants, chacun avec une ligne sur ce qu'il vérifie. |
+| `POST /v1/audit` | `audit_interface` | Corps `{"html": "...", "laws": [...]}` ; une liste `laws` vide exécute les huit. Rend `findings` (`law`, `severity`, `line`, `message`) et les comptes `errors` et `warnings`. |
+
+Un identifiant inconnu dans `laws` rend une erreur HTTP 400, plutôt qu'un rapport
+propre pour des vérifications qui n'ont pas tourné. La documentation interactive est
+servie sur `/docs` et `/redoc`.
+
+### Docker
+
+```bash
+docker compose up -d
+curl -s localhost:8000/health
+docker compose run --rm api sprezzature-ux-laws-audit --json /work/index.html
+```
+
+L'image sert l'API sur le port 8000. Compose monte `./work` sur `/work` pour les pages
+à auditer.
+
+## Serveur MCP
+
+Le Model Context Protocol (MCP) permet à un hôte d'agent d'appeler des outils
+directement. Le serveur enveloppe la même application FastAPI avec fastapi-mcp, si bien
+que l'`operation_id` de chaque route est le nom de l'outil : `health`, `list_laws`,
+`audit_interface`.
+
+```bash
+sprezzature-ux-laws-mcp                      # 127.0.0.1:8000, point d'accès MCP sur /mcp
+sprezzature-ux-laws-mcp --host 0.0.0.0 --port 9000
+```
+
+`--host` et `--port` prennent par défaut `SPREZZATURE_UX_LAWS_HOST` et
+`SPREZZATURE_UX_LAWS_PORT` quand ces variables sont définies.
+`python -m sprezzature_ux_laws.mcp` est équivalent.
+
+## Skill pour agent
+
+Le skill qui dit à un agent quand appliquer ces lois, `sprezzature-ux-laws`, est livré
+depuis le dépôt central [sprezzature](https://github.com/warith-harchaoui/sprezzature).
+Les règles d'aiguillage et le tableau des outils pour les agents sont dans
+[`TRIGGERS.md`](TRIGGERS.md).
 
 ## Périmètre assumé
 
-L'auditeur attrape les violations mécaniques, décidables à la lecture
-du source. Il ne juge pas si un écran répond à la bonne question ni si
-un parcours a du sens : cela reste un jugement humain. C'est un verrou
-rapide, pas un substitut à une revue de design.
+L'auditeur attrape les violations mécaniques, décidables à la lecture du source, de
+huit lois sur les trente de lawsofux.com. Il ne juge pas si un écran répond à la bonne
+question ni si un parcours a du sens : cela reste un jugement humain. Le temps de
+réponse (le seuil de Doherty) n'est pas un fait du source, et n'est pas vérifié. C'est
+un verrou rapide, pas un substitut à une revue de design.
 
 ## Licence
 

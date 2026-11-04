@@ -42,7 +42,8 @@ signalent sous des angles différents.
 
 - **Vous voulez un crochet de pré-commit, pas un rapport.** La page médiane du site de
   cette suite, environ 20 kilo-octets, s'audite en cinq millisecondes environ, sans
-  navigateur à démarrer et sans rien à installer au-delà de Python et de click. Un
+  navigateur à démarrer, après un seul `pip install` (l'auditeur lui-même n'emploie que
+  la bibliothèque standard). Un
   verrou qui ne coûte rien tourne à chaque fois ; un verrou qui coûte trente secondes
   finit désactivé.
 - **Vous avez besoin du même verdict deux fois.** Les contrôles sont de l'analyse de

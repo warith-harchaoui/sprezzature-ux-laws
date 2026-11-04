@@ -1,1 +1,4 @@
-# Core - stdlib only (HTMLParser-based auditor). No runtime dependencies.
+# The runtime dependencies are declared in pyproject.toml, not here:
+# click, fastapi, uvicorn[standard], fastapi-mcp and mcp, all in base since
+# 2026-11-01. The auditor itself (scripts/audit_laws_of_ux.py) uses the
+# standard library only. Install with: pip install sprezzature-ux-laws

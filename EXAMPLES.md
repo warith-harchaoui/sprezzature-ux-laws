@@ -5,7 +5,7 @@ The examples below all run against the same tiny fixture:
 ```html
 <!-- public/index.html -->
 <!DOCTYPE html><html><body>
-<button class="px-4">Go</button>
+<button class="px-4 bg-blue-600">Go</button>
 <div class="cursor-pointer">Menu</div>
 </body></html>
 ```
@@ -13,6 +13,11 @@ The examples below all run against the same tiny fixture:
 Line 2 is a `<button>` with no hit-area class (Fitts) and no focus
 ring (Aesthetic-Usability). Line 3 is a clickable `<div>` standing in
 for a real `<button>` (Jakob).
+
+`px-4` and `bg-blue-600` are two distinct Tailwind utilities, which is
+what makes the Fitts and Aesthetic-Usability checks read the page. With
+fewer than two, each of those checks reports a single `info` finding on
+line 1 ("no Tailwind utilities in this document…") instead.
 
 ## Audit a single file
 
@@ -107,11 +112,20 @@ run alone; `--strict` makes it exit `1` anyway.
 sprezzature-ux-laws-audit --fix public/index.html
 ```
 
-stderr output:
+Output (the first line on stderr, the second on stdout):
 
 ```
 public/index.html: applied 5 fix(es); 0 unfixable finding(s); 0 remaining.
 audit_laws_of_ux: 0 findings.
+```
+
+The repaired file:
+
+```html
+<!DOCTYPE html><html><body>
+<button class="px-4 bg-blue-600 min-h-11 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-blue">Go</button>
+<button class="cursor-pointer min-h-11 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-blue">Menu</button>
+</body></html>
 ```
 
 All three findings had a fixer, and Jakob's `<div>` to `<button>`
@@ -120,9 +134,12 @@ freshly minted `<button>`, which the loop then fixes in a later pass;
 5 total edits across every pass, for 3 original findings.
 
 Laws with a fixer: `fitts` (adds `min-h-11`), `aesthetic-usability`
-(adds `focus-visible:ring-2 …`), `miller` (chunks long digit runs with
-non-breaking spaces), `jakob` (rewrites a single-line `<div
-role="button">` / `<span>` to a real `<button>`). A fixer can only add
+(adds `focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-blue`),
+`miller` (splits a long digit-bearing run into groups of four with
+non-breaking spaces; names such as `GMTED2010` are never flagged, so never
+split), `jakob` (rewrites a clickable `<div>` or
+`<span>` that fits on one line to a real `<button>`, removing
+`role="button"`). A fixer can only add
 tokens to a `class="…"` attribute that already exists on the element;
 an element with no `class` attribute at all is reported but left
 untouched, and shows up again as `remaining` after the fix pass.
@@ -136,7 +153,19 @@ Laws without a fixer (they need a design decision, not a text edit):
 sprezzature-ux-laws-audit --fix --dry-run public/index.html
 ```
 
-Exits `0` always: a preview, not a verdict.
+stderr reads `public/index.html: would apply 3 fix(es); 0 unfixable
+finding(s); 3 remaining.`, and stdout lists the three original findings.
+The count is one pass only, so it does not include the findings a Jakob
+rewrite would create. `--dry-run` alone implies `--fix`. Exits `0` always:
+a preview, not a verdict.
+
+## Unknown law
+
+```bash
+sprezzature-ux-laws-audit --only bogus public/index.html
+```
+
+Prints `audit_laws_of_ux: unknown law(s): bogus` on stderr and exits `2`.
 
 ## Pre-commit hook
 

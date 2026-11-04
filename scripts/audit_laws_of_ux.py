@@ -15,12 +15,15 @@ Anything that only shows up once the page actually renders (real
 measured response time, real layout sizes, focus trapping under a
 mouse) is out of scope by design.
 
-The checks are deliberately conservative. Findings come in two
+The checks are deliberately conservative. Findings come in three
 severities:
 
 * ``error``: a confident violation; the build should fail.
 * ``warning``: heuristic; the maintainer should look but may rule it
   out as a false positive.
+* ``info``: emitted once per document by the Fitts and
+  Aesthetic-Usability checks when the page uses no Tailwind utilities,
+  since both read Tailwind's scale.
 
 Implemented checks
 ------------------
@@ -78,8 +81,8 @@ Usage
 Notes
 -----
 * Python 3.10+, stdlib only. No ``beautifulsoup`` / no ``lxml``.
-* Pairs with ``references/laws-of-ux.md`` (the rules) and
-  ``references/checklist.md`` (the broader gate).
+* Pairs with ``references/laws-of-ux.md`` (the rules and the
+  pre-ship checklist).
 * For runtime checks (real layout, focus trap, dynamic
   ``aria-live`` regions) reach for ``axe-core`` / ``Pa11y`` /
   ``Lighthouse``; this script is intentionally a static pre-commit
@@ -658,8 +661,9 @@ def check_miller(path: str, lines: list[str]) -> list[Finding]:
 
     Scans only the visible text of the file (lines outside ``<script>``
     / ``<style>`` blocks). False positives on hashed CSS class names
-    are filtered by also requiring the run to *not* sit inside a
-    ``class="…"`` or ``id="…"`` attribute on the same line.
+    are filtered by stripping ``class="…"``, ``id="…"``, ``href="…"`` and
+    ``src="…"`` values from the line before scanning. Runs with no digit,
+    and letters-then-digits names such as ``GMTED2010``, are skipped.
     """
     out: list[Finding] = []
     in_script: bool = False
@@ -1560,10 +1564,25 @@ def main(argv: list[str] | None = None) -> int:
     )
     ignored: set[str] = {s.strip() for s in args.ignore.split(",") if s.strip()}
     laws: set[str] = requested - ignored
-    unknown: set[str] = laws - set(LAW_REGISTRY)
+    # Checked on both lists. A misspelt slug in --ignore used to be accepted
+    # and skip nothing, so the law it meant to silence still ran and the run
+    # looked as if the flag had worked.
+    unknown: set[str] = (requested | ignored) - set(LAW_REGISTRY)
     if unknown:
         print(
             f"audit_laws_of_ux: unknown law(s): {','.join(sorted(unknown))}",
+            file=sys.stderr,
+        )
+        return 2
+
+    # A path that does not exist is a usage error, as it is on the click
+    # command (click.Path(exists=True)): skipping it with a warning and
+    # exiting 0 let a typo in a CI target turn the gate green.
+    missing: list[Path] = [t for t in args.targets if not t.exists()]
+    if missing:
+        print(
+            "audit_laws_of_ux: no such file or directory: "
+            + ", ".join(str(m) for m in missing),
             file=sys.stderr,
         )
         return 2

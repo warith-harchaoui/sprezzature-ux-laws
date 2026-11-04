@@ -5,9 +5,9 @@ Module summary
 --------------
 Exposes the laws-of-UX auditor over HTTP, so a design review, a CI job, or
 an editor plugin in any language can check an interface against the eight
-laws without shelling out to Python. Every route calls
-:func:`audit_laws_of_ux.audit_html` — the same function the command line
-calls — so the HTTP answer and the terminal answer cannot disagree.
+laws without shelling out to Python. ``POST /v1/audit`` calls
+:func:`sprezzature_ux_laws.audit_html`, the function the command line
+reaches too, so the HTTP answer and the terminal answer cannot disagree.
 
 What ships here
 ---------------
@@ -21,8 +21,10 @@ These checks read *structure*, not experience. "Nine links in a nav" is a
 fact about the markup, and Hick's law says more choices cost decision time;
 whether nine is too many for *this* audience, doing *this* task, is a
 judgement no linter holds. The findings are prompts for a designer, not
-verdicts — which is why every one of them is a warning rather than an error
-unless it breaks something measurable, like a hit area below 44 px.
+verdicts: only two laws report errors (``hick`` above seven choices and
+``jakob`` for a ``<div>`` or ``<span>`` acting as a button); the other six
+report warnings, and ``fitts`` and ``aesthetic-usability`` report a single
+``info`` on a page that does not use Tailwind.
 
 FastAPI and uvicorn are base dependencies since 2026-11-01, so there
 is no extra to ask for::
@@ -75,14 +77,14 @@ from . import __version__ as _VERSION  # noqa: E402
 #: Kept here rather than in the auditor because it is presentation: the
 #: checks themselves need no prose to run.
 _LAW_NOTES: dict[str, str] = {
-    "hick": "Decision time grows with the number of choices. Flags long menus and option lists.",
-    "choice-overload": "Too many comparable options stall a choice entirely. Flags oversized grids of cards.",
-    "miller": "Working memory holds about seven items. Flags unbroken runs of digits or long unchunked strings.",
-    "jakob": "People expect your site to work like the others they know. Flags unconventional control naming.",
-    "fitts": "Time to hit a target falls with its size. Flags interactive elements below the 44 px minimum.",
-    "aesthetic-usability": "A tidy interface is perceived as more usable. Flags crowding and inconsistent spacing.",
-    "selective-attention": "People miss what looks like an advert. Flags status conveyed by colour alone.",
-    "tesler": "Complexity is conserved: what the interface drops, the user carries. Flags raw timestamps and unlocalised values.",
+    "hick": "Decision time grows with the number of choices. Flags a <nav> showing more than seven top-level choices on one screen.",
+    "choice-overload": "Too many comparable options stall a choice entirely. Flags a pricing or plans grid with more than four columns.",
+    "miller": "Working memory holds about seven items. Flags visible runs of eight or more letters and digits that contain a digit.",
+    "jakob": "People expect your site to work like the others they know. Flags a <div> or <span> acting as a button instead of a native control.",
+    "fitts": "Time to hit a target falls with its size. Flags interactive elements without a 44 px height class (Tailwind pages).",
+    "aesthetic-usability": "A tidy interface is perceived as more usable. Flags interactive elements without a focus-visible ring class (Tailwind pages).",
+    "selective-attention": "People miss what they are not looking for. Flags a status shown by colour alone, with no word or icon.",
+    "tesler": "Complexity is conserved: what the interface drops, the user carries. Flags clock times shown without a timezone.",
 }
 
 app = FastAPI(
@@ -138,8 +140,8 @@ def laws() -> dict:
     The eight laws, each with a one-line note on what it checks.
 
     Call this to answer "which laws do you know", and before narrowing
-    `audit_interface` to a subset -- a law id that does not exist selects
-    nothing, so a guessed name runs no check at all. It also draws the
+    `audit_interface` to a subset -- a law id that does not exist is refused
+    with HTTP 400, so take the ids from here rather than guessing. It also draws the
     boundary: eight laws, mechanically checkable, out of a field that is much
     larger and mostly judgement.
 
@@ -172,8 +174,9 @@ def audit(request: AuditRequest) -> dict:
     accessibility one (sprezzature-accessibility) and the contrast one
     (sprezzature-colors).
 
-    It reads the markup: it counts choices, measures targets, looks for the
-    feedback a slow action should give. It cannot watch anybody use the page,
+    It reads the markup: it counts choices, reads the classes that size a
+    target or draw a focus ring, matches codes and clock times in the text.
+    It does not measure response time. It cannot watch anybody use the page,
     so it finds the mechanical mistakes and says nothing about whether the
     design is right. Report it as evidence, never as a verdict.
 
@@ -185,7 +188,8 @@ def audit(request: AuditRequest) -> dict:
     Returns
     -------
     dict
-        ``findings`` (law, severity, line, message) and counts by severity.
+        ``findings`` (law, severity, line, message), plus ``errors`` and
+        ``warnings`` counts (``info`` findings are listed but not counted).
 
     Raises
     ------
