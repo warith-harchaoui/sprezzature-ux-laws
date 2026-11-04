@@ -95,7 +95,6 @@ Author
 
 from __future__ import annotations
 
-import argparse
 import json
 import re
 import sys
@@ -105,8 +104,10 @@ from html.parser import HTMLParser
 from pathlib import Path
 from typing import Any
 
+# ``_click`` (the parser helpers synced from the hub) is imported inside
+# :func:`main`, not here: ``import sprezzature_ux_laws`` loads this module for
+# the library surface, and the library must import on a machine without click.
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from _argparse import make_parser  # noqa: E402
 
 # ── Domain types ───────────────────────────────────────────────────────────
 
@@ -127,9 +128,7 @@ FITTS_OK_SIZES: frozenset[str] = frozenset(
 #: Regex that finds a Tailwind size class. Matches ``h-11``, ``min-h-12``,
 #: ``size-11`` and their responsive / state-prefixed cousins
 #: (``sm:h-11``, ``hover:min-h-12``, …).
-RE_TW_SIZE: re.Pattern[str] = re.compile(
-    r"(?:[a-z-]+:)*(?:min-)?(?:h|size)-(\w+)"
-)
+RE_TW_SIZE: re.Pattern[str] = re.compile(r"(?:[a-z-]+:)*(?:min-)?(?:h|size)-(\w+)")
 
 #: Tailwind's responsive display utilities, read by ``_visibility`` to tell
 #: apart the controls a phone shows from the ones a desktop shows. A header
@@ -144,9 +143,7 @@ RE_BP_SHOW: re.Pattern[str] = re.compile(
 )
 
 #: Regex finding a ``focus-visible:ring-*`` / ``focus:ring-*`` class.
-RE_TW_FOCUS_RING: re.Pattern[str] = re.compile(
-    r"(?:[a-z-]+:)*focus(?:-visible)?:ring(?:-\w+)?"
-)
+RE_TW_FOCUS_RING: re.Pattern[str] = re.compile(r"(?:[a-z-]+:)*focus(?:-visible)?:ring(?:-\w+)?")
 
 #: Regex finding a Tailwind status colour utility (``text-red-700``,
 #: ``text-green-500``, …).
@@ -203,11 +200,24 @@ RE_DURATION_CONTEXT: re.Pattern[str] = re.compile(
 #: check (a status colour plus one of these words is fine).
 STATUS_WORDS: frozenset[str] = frozenset(
     {
-        "error", "errors", "failed", "failure", "fail",
-        "ok", "okay", "success", "succeeded", "saved",
-        "warning", "warn", "caution",
-        "info", "notice",
-        "pending", "loading", "running",
+        "error",
+        "errors",
+        "failed",
+        "failure",
+        "fail",
+        "ok",
+        "okay",
+        "success",
+        "succeeded",
+        "saved",
+        "warning",
+        "warn",
+        "caution",
+        "info",
+        "notice",
+        "pending",
+        "loading",
+        "running",
     }
 )
 
@@ -297,9 +307,7 @@ class Walker(HTMLParser):
 
     # ── HTMLParser hooks ──────────────────────────────────────────────────
 
-    def handle_starttag(
-        self, tag: str, attrs: list[tuple[str, str | None]]
-    ) -> None:
+    def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
         """Record an opening tag and its attributes for later rule checks."""
         parent: int = self._stack[-1] if self._stack else -1
         line, _ = self.getpos()
@@ -312,7 +320,14 @@ class Walker(HTMLParser):
         self.elements.append(elem)
         # Void tags do not push onto the stack: they have no children.
         if tag not in {
-            "img", "br", "hr", "input", "meta", "link", "source", "area",
+            "img",
+            "br",
+            "hr",
+            "input",
+            "meta",
+            "link",
+            "source",
+            "area",
         }:
             self._stack.append(len(self.elements) - 1)
 
@@ -337,9 +352,7 @@ class Walker(HTMLParser):
                 return
         # No matching opener anywhere on the stack: ignore the stray tag.
 
-    def handle_startendtag(
-        self, tag: str, attrs: list[tuple[str, str | None]]
-    ) -> None:
+    def handle_startendtag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
         # Self-closing form (``<input … />``): same as start but no push.
         """Record a self-closing tag (e.g. ``<img/>``, ``<input/>``)."""
         parent: int = self._stack[-1] if self._stack else -1
@@ -545,9 +558,7 @@ def check_hick(walker: Walker, path: str) -> list[Finding]:
     grouping_roles: frozenset[str] = frozenset(
         {"radiogroup", "tablist", "menubar", "listbox", "combobox"}
     )
-    grouping_tags: frozenset[str] = frozenset(
-        {"details", "dialog", "menu"}
-    )
+    grouping_tags: frozenset[str] = frozenset({"details", "dialog", "menu"})
     out: list[Finding] = []
     for idx, elem in enumerate(walker.elements):
         if elem.tag != "nav":
@@ -566,9 +577,7 @@ def check_hick(walker: Walker, path: str) -> list[Finding]:
             chain: list[int] = _ancestor_indices(walker, j)
             # Must descend from THIS nav (the nearest nav ancestor must
             # be ``idx``).
-            nav_idx: int | None = next(
-                (k for k in chain if walker.elements[k].tag == "nav"), None
-            )
+            nav_idx: int | None = next((k for k in chain if walker.elements[k].tag == "nav"), None)
             if nav_idx != idx:
                 continue
             # Walk up from child to this nav; stop at the first grouping
@@ -586,9 +595,7 @@ def check_hick(walker: Walker, path: str) -> list[Finding]:
                 if grouped_under in counted_groups:
                     continue
                 counted_groups.add(grouped_under)
-                unit_chain: list[int] = [grouped_under] + [
-                    k for k in chain if k != grouped_under
-                ]
+                unit_chain: list[int] = [grouped_under] + [k for k in chain if k != grouped_under]
             else:
                 unit_chain = [j] + chain
             where: str = _visibility(walker, unit_chain, idx)
@@ -711,8 +718,7 @@ def check_miller(path: str, lines: list[str]) -> list[Finding]:
                     path=path,
                     line=n,
                     message=(
-                        f"Long unbroken run '{run}' "
-                        f"({len(run)} chars). Chunk into groups of 3–4."
+                        f"Long unbroken run '{run}' ({len(run)} chars). Chunk into groups of 3–4."
                     ),
                     snippet=_short(raw),
                 )
@@ -757,7 +763,8 @@ def check_jakob(walker: Walker, path: str) -> list[Finding]:
             if node.tag == "label":
                 in_labelled_control = any(
                     c.tag in {"input", "select", "textarea"}
-                    for c in walker.elements if c.parent == anc
+                    for c in walker.elements
+                    if c.parent == anc
                 )
                 break
             anc = node.parent
@@ -862,14 +869,13 @@ def check_fitts(walker: Walker, path: str) -> list[Finding]:
             continue
         # Skip ``<a>`` inside ``<p>`` / ``<li>``: they're text links, not buttons.
         cls: list[str] = _classes(elem)
-        if elem.tag == "a" and not any(
-            c in cls
-            for c in ("inline-flex", "flex", "block", "btn", "button")
-        ) and not any(c.startswith(("bg-", "border-")) for c in cls):
+        if (
+            elem.tag == "a"
+            and not any(c in cls for c in ("inline-flex", "flex", "block", "btn", "button"))
+            and not any(c.startswith(("bg-", "border-")) for c in cls)
+        ):
             continue
-        sizes: list[str] = [
-            m.group(1) for c in cls for m in (RE_TW_SIZE.fullmatch(c),) if m
-        ]
+        sizes: list[str] = [m.group(1) for c in cls for m in (RE_TW_SIZE.fullmatch(c),) if m]
         if any(s in FITTS_OK_SIZES for s in sizes):
             continue
         out.append(
@@ -915,8 +921,7 @@ def check_aesthetic_usability(walker: Walker, path: str) -> list[Finding]:
                 path=path,
                 line=elem.line,
                 message=(
-                    f"<{elem.tag}> has no focus-visible:ring-* class. "
-                    f"Add the house focus token."
+                    f"<{elem.tag}> has no focus-visible:ring-* class. Add the house focus token."
                 ),
             )
         )
@@ -956,10 +961,7 @@ def check_selective_attention(walker: Walker, path: str) -> list[Finding]:
                 severity="warning",
                 path=path,
                 line=elem.line,
-                message=(
-                    "Status colour without a second channel "
-                    "(icon, status word, aria-label)."
-                ),
+                message=("Status colour without a second channel (icon, status word, aria-label)."),
                 snippet=_short(text),
             )
         )
@@ -1033,9 +1035,7 @@ def check_tesler(path: str, lines: list[str]) -> list[Finding]:
 
 #: Map of CLI law names to (walker-check, text-check) entries. ``None``
 #: means the check does not need that input shape.
-LAW_REGISTRY: dict[str, tuple[
-    Callable[..., Any] | None, Callable[..., Any] | None
-]] = {
+LAW_REGISTRY: dict[str, tuple[Callable[..., Any] | None, Callable[..., Any] | None]] = {
     "hick": (check_hick, None),
     "choice-overload": (check_choice_overload, None),
     "miller": (None, check_miller),
@@ -1092,7 +1092,7 @@ def _insert_class_tokens(line: str, tokens: list[str]) -> tuple[str, bool]:
     # Match either single- or double-quoted attribute values. Capture
     # the quote so the rewrite can reuse it (single-quoted ``class``
     # attributes are valid HTML and appear in sprezzature-ui examples).
-    m = re.search(r'''class=(["'])((?:(?!\1).)*)\1''', line)
+    m = re.search(r"""class=(["'])((?:(?!\1).)*)\1""", line)
     if not m:
         return line, False
     existing: list[str] = m.group(2).split()
@@ -1185,9 +1185,7 @@ def _fix_jakob(lines: list[str], finding: Finding) -> bool:
         opened: bool = False
         # Path A: strip ``role="button"`` and rename the tag in one
         # pass (handles ``<div role="button" class="…">``).
-        role_pat = re.compile(
-            rf'<{src_tag}\b([^>]*?)\s+role="button"([^>]*?)>'
-        )
+        role_pat = re.compile(rf'<{src_tag}\b([^>]*?)\s+role="button"([^>]*?)>')
         new_line = role_pat.sub(r"<button\1\2>", line, count=1)
         if new_line != line:
             line = new_line
@@ -1419,9 +1417,7 @@ def audit_file(path: Path, laws: set[str] | None = None) -> list[Finding]:
     list of Finding
         All findings, in registry order.
     """
-    return audit_html(
-        path.read_text(encoding="utf-8", errors="replace"), laws, str(path)
-    )
+    return audit_html(path.read_text(encoding="utf-8", errors="replace"), laws, str(path))
 
 
 def discover(targets: list[Path]) -> list[Path]:
@@ -1461,9 +1457,7 @@ def format_text(findings: list[Finding]) -> str:
         return "audit_laws_of_ux: 0 findings.\n"
     rows: list[str] = []
     for f in findings:
-        rows.append(
-            f"{f.path}:{f.line}: [{f.severity}] {f.law}: {f.message}"
-        )
+        rows.append(f"{f.path}:{f.line}: [{f.severity}] {f.law}: {f.message}")
         if f.snippet:
             rows.append(f"    {f.snippet}")
     rows.append("")
@@ -1491,36 +1485,49 @@ def main(argv: list[str] | None = None) -> int:
     """
     CLI entry point.
 
+    Parameters
+    ----------
+    argv : list of str or None, optional
+        Arguments to parse. ``None`` reads ``sys.argv[1:]``.
+
     Returns
     -------
     int
         ``0`` when no findings of severity ``error`` (or any severity in
-        ``--strict``). ``1`` otherwise.
+        ``--strict``). ``1`` otherwise. ``2`` on a usage error, raised as
+        ``SystemExit(2)`` by the parser as argparse used to.
     """
-    parser: argparse.ArgumentParser = make_parser(
-        prog="sprezzature-ux-laws-audit",
-        description=(
+    import click
+    from _click import run_command, sprezzature_command
+
+    @sprezzature_command(
+        "sprezzature-ux-laws-audit",
+        help=(
             "Static auditor for the canonical Laws of UX "
-            "(Jon YABLONSKI, lawsofux.com) against sprezzature-ui output."
+            "(Jon YABLONSKI, lawsofux.com) against sprezzature-ui output.\n\n"
+            "TARGETS are the HTML files or directories to audit."
         ),
     )
-    parser.add_argument(
+    @click.argument(
         "targets",
-        nargs="+",
-        type=Path,
-        help="HTML files or directories to audit.",
+        nargs=-1,
+        required=True,
+        type=click.Path(path_type=Path),
     )
-    parser.add_argument(
+    @click.option(
         "--json",
-        action="store_true",
+        "json_",
+        is_flag=True,
+        default=False,
         help="Emit JSON instead of a text report.",
     )
-    parser.add_argument(
+    @click.option(
         "--strict",
-        action="store_true",
+        is_flag=True,
+        default=False,
         help="Promote warnings to errors (any finding fails the run).",
     )
-    parser.add_argument(
+    @click.option(
         "--only",
         type=str,
         default="",
@@ -1529,15 +1536,16 @@ def main(argv: list[str] | None = None) -> int:
             f"Available: {','.join(sorted(LAW_REGISTRY))}."
         ),
     )
-    parser.add_argument(
+    @click.option(
         "--ignore",
         type=str,
         default="",
         help="Comma-separated laws to skip.",
     )
-    parser.add_argument(
+    @click.option(
         "--fix",
-        action="store_true",
+        is_flag=True,
+        default=False,
         help=(
             "Apply mechanical fixes in place for the laws that have "
             "a fixer (Fitts adds min-h-11; Aesthetic-Usability adds "
@@ -1547,22 +1555,54 @@ def main(argv: list[str] | None = None) -> int:
             "performs zero edits. Combine with --dry-run to preview."
         ),
     )
-    parser.add_argument(
+    @click.option(
         "--dry-run",
-        action="store_true",
+        "dry_run",
+        is_flag=True,
+        default=False,
         help=(
             "With --fix, print what would change without touching the "
             "files. Implies --fix when used alone."
         ),
     )
-    args: argparse.Namespace = parser.parse_args(argv)
+    def command(
+        targets: tuple[Path, ...],
+        json_: bool,
+        strict: bool,
+        only: str,
+        ignore: str,
+        fix: bool,
+        dry_run: bool,
+    ) -> int:
+        """Hand the parsed flags to :func:`_run`."""
+        return _run(
+            targets=list(targets),
+            json_=json_,
+            strict=strict,
+            only=only,
+            ignore=ignore,
+            fix=fix,
+            dry_run=dry_run,
+        )
 
+    return run_command(command, argv)
+
+
+def _run(
+    *,
+    targets: list[Path],
+    json_: bool,
+    strict: bool,
+    only: str,
+    ignore: str,
+    fix: bool,
+    dry_run: bool,
+) -> int:
+    """Audit (or fix) ``targets``; return the exit code :func:`main` documents."""
     requested: set[str] = (
-        {s.strip() for s in args.only.split(",") if s.strip()}
-        if args.only
-        else set(LAW_REGISTRY)
+        {s.strip() for s in only.split(",") if s.strip()} if only else set(LAW_REGISTRY)
     )
-    ignored: set[str] = {s.strip() for s in args.ignore.split(",") if s.strip()}
+    ignored: set[str] = {s.strip() for s in ignore.split(",") if s.strip()}
     laws: set[str] = requested - ignored
     # Checked on both lists. A misspelt slug in --ignore used to be accepted
     # and skip nothing, so the law it meant to silence still ran and the run
@@ -1578,16 +1618,15 @@ def main(argv: list[str] | None = None) -> int:
     # A path that does not exist is a usage error, as it is on the click
     # command (click.Path(exists=True)): skipping it with a warning and
     # exiting 0 let a typo in a CI target turn the gate green.
-    missing: list[Path] = [t for t in args.targets if not t.exists()]
+    missing: list[Path] = [t for t in targets if not t.exists()]
     if missing:
         print(
-            "audit_laws_of_ux: no such file or directory: "
-            + ", ".join(str(m) for m in missing),
+            "audit_laws_of_ux: no such file or directory: " + ", ".join(str(m) for m in missing),
             file=sys.stderr,
         )
         return 2
 
-    files: list[Path] = discover(args.targets)
+    files: list[Path] = discover(targets)
     if not files:
         print("audit_laws_of_ux: no HTML files found.", file=sys.stderr)
         return 0
@@ -1595,18 +1634,16 @@ def main(argv: list[str] | None = None) -> int:
     # ── Fix mode ───────────────────────────────────────────────────────
     # ``--dry-run`` alone implies ``--fix`` (preview only). Plain
     # invocation (neither flag) falls through to the auditor below.
-    if args.fix or args.dry_run:
+    if fix or dry_run:
         total_applied: int = 0
         total_skipped: int = 0
         total_remaining: list[Finding] = []
         for p in files:
-            applied, skipped, remaining = fix_file(
-                p, laws, dry_run=args.dry_run
-            )
+            applied, skipped, remaining = fix_file(p, laws, dry_run=dry_run)
             total_applied += applied
             total_skipped += skipped
             total_remaining.extend(remaining)
-            verb: str = "would apply" if args.dry_run else "applied"
+            verb: str = "would apply" if dry_run else "applied"
             print(
                 f"{p}: {verb} {applied} fix(es); {skipped} unfixable "
                 f"finding(s); {len(remaining)} remaining.",
@@ -1614,19 +1651,15 @@ def main(argv: list[str] | None = None) -> int:
             )
         # After the fix pass, emit the remaining findings on stdout in
         # the requested format so a CI pipeline can still gate on them.
-        out: str = (
-            format_json(total_remaining)
-            if args.json
-            else format_text(total_remaining)
-        )
+        out: str = format_json(total_remaining) if json_ else format_text(total_remaining)
         sys.stdout.write(out)
         # Dry-run is a preview, not a verdict: always exit 0 so the
         # user can pipe it without failing their pre-commit hook.
         # Live --fix follows the same exit-code policy as audit mode.
-        if args.dry_run:
+        if dry_run:
             return 0
         if total_remaining:
-            return 1 if (args.strict or any(f.severity == "error" for f in total_remaining)) else 0
+            return 1 if (strict or any(f.severity == "error" for f in total_remaining)) else 0
         return 0
 
     # ── Audit-only mode ────────────────────────────────────────────────
@@ -1634,12 +1667,12 @@ def main(argv: list[str] | None = None) -> int:
     for p in files:
         findings.extend(audit_file(p, laws))
 
-    out = format_json(findings) if args.json else format_text(findings)
+    out = format_json(findings) if json_ else format_text(findings)
     sys.stdout.write(out)
 
     if not findings:
         return 0
-    if args.strict:
+    if strict:
         return 1
     return 1 if any(f.severity == "error" for f in findings) else 0
 

@@ -1,8 +1,8 @@
 """
 The click command line — ``sprezzature-ux-laws``.
 
-The twin of ``sprezzature-ux-laws-audit`` (argparse): same flags, same
-handler, the other parser. Both build the same argument vector and hand it to
+The twin of ``sprezzature-ux-laws-audit``: same flags, same handler, both
+parsed with click since 2026-11-04. Both build the same argument vector and hand it to
 the same ``main``, so a flag cannot exist on one front door and be missing
 from the other.
 
@@ -14,7 +14,7 @@ Click is the only parser here, and a base dependency rather than an extra:
 this package carried no base dependencies at all, but with argparse removed
 from the suite on 2026-10-25 no parser ships with Python, so an optional
 click would mean an install whose own command does not run. The per-tool
-script `sprezzature-ux-laws-audit` still needs nothing beyond it.
+script `sprezzature-ux-laws-audit` needs nothing beyond it either.
 
 
 Author
@@ -121,7 +121,7 @@ def _as_argv(
     fix: bool,
     dry_run: bool,
 ) -> list[str]:
-    """Rebuild the argument vector the argparse front door would parse.
+    """Rebuild the argument vector the per-tool command would parse.
 
     The shared ``main`` parses its own argv rather than taking a
     namespace, so the twin hands it one back. Reconstructing is uglier

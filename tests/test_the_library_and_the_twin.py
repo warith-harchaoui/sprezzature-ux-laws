@@ -13,7 +13,7 @@ These tests hold the shape of the fix rather than the behaviour of the
 auditor, which `test_audit_laws_of_ux.py` already covers:
 
 - the library exports the names every other surface reads, and they work;
-- the click twin offers exactly the flags the argparse one does;
+- the click twin offers exactly the flags the per-tool command does;
 - the twin refuses politely when click is not installed, checked by actually
   hiding click rather than by reading the source.
 
@@ -163,11 +163,14 @@ def test_the_command_offers_every_flag_the_audit_takes() -> None:
         if opt.startswith("--")
     }
     source = (REPO_ROOT / "scripts" / "audit_laws_of_ux.py").read_text(encoding="utf-8")
-    argparse_flags = {
+    # The audit builds its click command inside main(), so it is read from the
+    # source: every `@click.option("--flag"` it declares.
+    audit_flags = {
         flag.lstrip("-").replace("-", "_")
-        for flag in re.findall(r'add_argument\(\s*"(--[a-z-]+)"', source)
+        for flag in re.findall(r'click\.option\(\s*"(--[a-z-]+)"', source)
     }
-    missing = argparse_flags - click_flags
+    assert audit_flags, "no click option found in audit_laws_of_ux.py: the regex is stale"
+    missing = audit_flags - click_flags
     assert not missing, f"the click twin is missing {sorted(missing)}"
 
 

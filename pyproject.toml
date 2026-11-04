@@ -60,9 +60,8 @@ dev = ["pytest>=8.0", "ruff", "mypy>=1.11,<3", "httpx2>=2.0.0"]
 # else.
 sprezzature-ux-laws-audit = "sprezzature_ux_laws_scripts.audit_laws_of_ux:main"
 # The click command, over the same flags and the same handler as the per-tool
-# script above. The per-tool script still parses with argparse (through
-# scripts/_argparse.py, a file synced from the hub); this one is click, the
-# suite's command-line parser since 2026-10-25.
+# script above. Both parse with click, the suite's only command-line parser:
+# the per-tool script through scripts/_click.py, a file synced from the hub.
 sprezzature-ux-laws = "sprezzature_ux_laws.cli:main"
 sprezzature-ux-laws-mcp = "sprezzature_ux_laws.mcp:main"
 

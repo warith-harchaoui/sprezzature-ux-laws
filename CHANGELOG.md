@@ -4,6 +4,29 @@ All notable changes to sprezzature-ux-laws are documented here.
 
 ## [Unreleased]
 
+### Changed
+
+- **Click is the only parser, for every command.** `sprezzature-ux-laws-audit`
+  and `sprezzature-ux-laws-mcp` parsed with argparse; both are click now,
+  through `scripts/_click.py`, with the same flags, defaults, help texts and
+  exit codes (a usage error still exits 2). The usage line now reads
+  `Usage:`. `scripts/_argparse.py` is deleted, since nothing imports it. The
+  click command is built inside `main()`, so `import sprezzature_ux_laws`
+  still works on a machine without click.
+- **`-V` prints the package version.** `sprezzature-ux-laws-audit -V` printed
+  `1.0.0`, a stale helper constant, while the package is at 1.3.0.
+  `sprezzature-ux-laws-mcp`
+  gains `-V` too.
+- **The Docker image serves `/mcp` as well.** Its CMD ran
+  `uvicorn sprezzature_ux_laws.api:app`, which never imports `mcp.py`, so the
+  container answered the HTTP routes and not the MCP endpoint. It now runs
+  `sprezzature-ux-laws-mcp --host 0.0.0.0 --port 8000`, and
+  `docker-compose.yml` states the same command: one process, one port, both
+  `/v1/...` and `/mcp`.
+- **A guard test**, `tests/test_click_only.py`: every console script answers
+  `--help` with exit 0 and a click usage line, and no module of the package
+  imports argparse.
+
 ### Fixed
 
 - **`--ignore` with an unknown slug is refused**, with exit code 2 and the

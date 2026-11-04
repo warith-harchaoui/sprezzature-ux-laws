@@ -5,6 +5,7 @@
 #
 #   docker compose up -d
 #   curl -s localhost:8000/health
+#   # the MCP endpoint answers on the same port: http://localhost:8000/mcp
 #   docker compose run --rm api sprezzature-ux-laws-audit --json /work/index.html
 #
 # No model, no network, no state: this brick reads HTML and reports on it.
@@ -22,4 +23,7 @@ services:
       # holds the only copy, and so a re-run sees the file as just edited.
       - ./work:/work
     working_dir: /work
+    # Stated rather than inherited from the Dockerfile: one process serving the
+    # HTTP routes and the MCP endpoint mounted on the same app, on this port.
+    command: ["sprezzature-ux-laws-mcp", "--host", "0.0.0.0", "--port", "8000"]
     restart: unless-stopped

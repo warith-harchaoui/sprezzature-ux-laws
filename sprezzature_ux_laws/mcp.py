@@ -77,7 +77,6 @@ except ImportError:  # pragma: no cover - dependency guard
         sys.exit(1)
 
 else:
-
     # Reuse the exact same FastAPI app -- MCP is a thin wrapper on top.
     from sprezzature_ux_laws.api import app
 
@@ -101,7 +100,6 @@ else:
     else:  # pragma: no cover - legacy fastapi-mcp
         mcp.mount()
 
-
     def main(argv: list[str] | None = None) -> None:
         """
         Entry point for the ``sprezzature-ux-laws-mcp`` console script.
@@ -119,40 +117,47 @@ else:
         argv : list of str or None, optional
             Arguments to parse. ``None`` reads ``sys.argv``.
         """
-        import argparse
         import os
 
-        parser = argparse.ArgumentParser(
-            prog="sprezzature-ux-laws-mcp",
-            description=(
+        import click
+        from sprezzature_ux_laws_scripts._click import run_command, sprezzature_command
+
+        default_host = os.environ.get("SPREZZATURE_UX_LAWS_HOST", "127.0.0.1")
+        default_port = int(os.environ.get("SPREZZATURE_UX_LAWS_PORT", "8000"))
+
+        @sprezzature_command(
+            "sprezzature-ux-laws-mcp",
+            help=(
                 "Serve the sprezzature-ux-laws MCP tools over HTTP. Every tool is a "
                 "route on the same FastAPI app, with the MCP endpoint "
                 "mounted beside them."
             ),
-            formatter_class=argparse.RawDescriptionHelpFormatter,
             epilog=(
                 "Defaults come from SPREZZATURE_UX_LAWS_HOST and "
-                "SPREZZATURE_UX_LAWS_PORT when those are set.\n"
+                "SPREZZATURE_UX_LAWS_PORT when those are set.\n\n"
                 "The host defaults to 127.0.0.1: pass --host 0.0.0.0 to "
                 "accept connections from outside this machine."
             ),
         )
-        parser.add_argument(
+        @click.option(
             "--host",
-            default=os.environ.get("SPREZZATURE_UX_LAWS_HOST", "127.0.0.1"),
-            help="Interface to bind (default: %(default)s).",
+            default=default_host,
+            help=f"Interface to bind (default: {default_host}).",
         )
-        parser.add_argument(
+        @click.option(
             "--port",
             type=int,
-            default=int(os.environ.get("SPREZZATURE_UX_LAWS_PORT", "8000")),
-            help="Port to bind (default: %(default)s).",
+            default=default_port,
+            help=f"Port to bind (default: {default_port}).",
         )
-        args = parser.parse_args(argv)
+        def command(host: str, port: int) -> None:
+            """Bind only once the flags have parsed, so --help never starts a server."""
+            import uvicorn
 
-        import uvicorn
+            uvicorn.run(app, host=host, port=port, workers=1)
 
-        uvicorn.run(app, host=args.host, port=args.port, workers=1)
+        run_command(command, argv)
+
 
 if __name__ == "__main__":  # pragma: no cover
     main()

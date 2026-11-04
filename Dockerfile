@@ -13,7 +13,12 @@ EXPOSE 8000
 
 # Serve what the image was built for. A CMD of `--help` is a container that
 # starts, prints and exits — which looks like it works and does nothing.
+#
+# The MCP server, not bare uvicorn on api:app: mcp.py mounts /mcp on the same
+# FastAPI app as the HTTP routes, so this one process on one port answers
+# both /v1/... and /mcp. `uvicorn sprezzature_ux_laws.api:app` served the
+# routes only, because nothing imported mcp.py to mount the endpoint.
 # Override with the command line:
 #
 #   docker run --rm -v "$PWD:/work" IMAGE sprezzature-ux-laws-audit /work/index.html
-CMD ["uvicorn", "sprezzature_ux_laws.api:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["sprezzature-ux-laws-mcp", "--host", "0.0.0.0", "--port", "8000"]

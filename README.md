@@ -207,8 +207,9 @@ curl -s localhost:8000/health
 docker compose run --rm api sprezzature-ux-laws-audit --json /work/index.html
 ```
 
-The image serves the API on port 8000. Compose mounts `./work` at `/work` for the pages
-to audit.
+The image runs `sprezzature-ux-laws-mcp`, so one process on port 8000 serves both the
+HTTP routes (`/health`, `/v1/...`) and the MCP endpoint at `/mcp`. Compose mounts
+`./work` at `/work` for the pages to audit.
 
 ## MCP server
 
