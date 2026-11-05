@@ -97,7 +97,7 @@ pip install sprezzature-ux-laws
 One install gives every surface: the library, both commands, the HTTP API and the MCP
 server. The base dependencies are click (the command line), FastAPI, uvicorn,
 fastapi-mcp and mcp. There are no feature extras. The only extra, `[dev]`, is the test
-toolchain (pytest, ruff, mypy).
+toolchain (pytest, ruff, mypy, httpx2).
 
 The auditor itself uses the Python standard library only (`html.parser`), with no
 browser and no network, which keeps it cheap enough for a pre-commit hook.
@@ -197,7 +197,9 @@ uvicorn sprezzature_ux_laws.api:app --host 127.0.0.1 --port 8000
 | `POST /v1/audit` | `audit_interface` | Body `{"html": "...", "laws": [...]}`; an empty `laws` runs all eight. Returns `findings` (`law`, `severity`, `line`, `message`) and the `errors` and `warnings` counts. |
 
 An unknown slug in `laws` returns HTTP 400, rather than a clean report for checks that
-never ran. Interactive documentation is served at `/docs` and `/redoc`.
+never ran. Interactive documentation is served at `/docs` and `/redoc`. Run this way,
+uvicorn serves the routes only: the MCP endpoint is mounted by `sprezzature-ux-laws-mcp`
+(below), which serves the same routes and `/mcp` together.
 
 ### Docker
 

@@ -38,8 +38,8 @@ Miller's Law                         warning    Visible run ≥ 8 chars that con
                                                 are skipped to suppress false positives on ordinary
                                                 English such as "collaborators" or "implementation")
 Jakob's Law                          error      Clickable ``<div>`` / ``<span>`` (``role="button"`` or
-                                                ``onclick=`` / ``cursor-pointer`` without a ``<button>`` parent)
-Fitts's Law                          warning    Interactive element with neither a ``min-h-`` nor an ``h-`` class
+                                                ``onclick=`` / ``cursor-pointer``) with no real control child
+Fitts's Law                          warning    Interactive element with no ``h-``, ``min-h-`` or ``size-`` class
                                                 of at least ``11`` (44 px) on the Tailwind scale
 Aesthetic-Usability                  warning    Interactive element missing ``focus-visible:ring-*`` /
                                                 ``focus:ring-*``
@@ -80,7 +80,11 @@ Usage
 
 Notes
 -----
-* Python 3.10+, stdlib only. No ``beautifulsoup`` / no ``lxml``.
+* Python 3.10+. The checks use the stdlib only: no ``beautifulsoup``,
+  no ``lxml``. The command line parses with click, imported inside
+  :func:`main` so the library imports without it.
+* Installed as ``sprezzature-ux-laws-audit``; ``sprezzature-ux-laws``
+  takes the same flags and calls the same handler.
 * Pairs with ``references/laws-of-ux.md`` (the rules and the
   pre-ship checklist).
 * For runtime checks (real layout, focus trap, dynamic
@@ -235,7 +239,8 @@ class Finding:
     law : str
         Short slug of the law (e.g. ``"hick"``).
     severity : str
-        ``"error"`` or ``"warning"``.
+        ``"error"``, ``"warning"`` or ``"info"`` (the once-per-document
+        note of the two Tailwind-scale checks on a page without Tailwind).
     path : str
         File the finding was produced from, relative to CWD if possible.
     line : int
@@ -732,7 +737,10 @@ def check_jakob(walker: Walker, path: str) -> list[Finding]:
 
     Triggers when a ``<div>`` or ``<span>`` has ``onclick=``,
     ``role="button"``, or ``cursor-pointer`` in its class list and is
-    **not** wrapping a real ``<button>`` / ``<a>`` child.
+    **not** wrapping a real ``<button>`` / ``<a>`` / ``<input>`` /
+    ``<select>`` / ``<summary>`` child. A styled ``<div>`` / ``<span>``
+    inside a ``<label>`` that holds an ``<input>`` / ``<select>`` /
+    ``<textarea>`` is left alone: the form control carries the semantics.
     """
     out: list[Finding] = []
     for idx, elem in enumerate(walker.elements):

@@ -106,7 +106,8 @@ pip install sprezzature-ux-laws
 Une seule installation donne toutes les surfaces : la bibliothèque, les deux
 commandes, l'API HTTP et le serveur MCP. Les dépendances de base sont click (la ligne
 de commande), FastAPI, uvicorn, fastapi-mcp et mcp. Il n'y a aucun extra de
-fonctionnalité. Le seul extra, `[dev]`, est l'outillage de test (pytest, ruff, mypy).
+fonctionnalité. Le seul extra, `[dev]`, est l'outillage de test (pytest, ruff, mypy,
+httpx2).
 
 L'auditeur lui-même n'emploie que la bibliothèque standard de Python (`html.parser`),
 sans navigateur ni réseau, ce qui le rend assez bon marché pour un crochet de
@@ -211,7 +212,9 @@ uvicorn sprezzature_ux_laws.api:app --host 127.0.0.1 --port 8000
 
 Un identifiant inconnu dans `laws` rend une erreur HTTP 400, plutôt qu'un rapport
 propre pour des vérifications qui n'ont pas tourné. La documentation interactive est
-servie sur `/docs` et `/redoc`.
+servie sur `/docs` et `/redoc`. Lancé ainsi, uvicorn ne sert que les routes : le point
+d'accès MCP est monté par `sprezzature-ux-laws-mcp` (plus bas), qui sert les mêmes
+routes et `/mcp` ensemble.
 
 ### Docker
 
@@ -221,7 +224,7 @@ curl -s localhost:8000/health
 docker compose run --rm api sprezzature-ux-laws-audit --json /work/index.html
 ```
 
-L'image lance `sprezzature-ux-laws-mcp` : un seul processus, sur le port 8000, sert à la
+L'image lance `sprezzature-ux-laws-mcp` : un seul processus, sur le port 8000, sert à la
 fois les routes HTTP (`/health`, `/v1/...`) et le point d'accès MCP sur `/mcp`. Compose
 monte `./work` sur `/work` pour les pages à auditer.
 

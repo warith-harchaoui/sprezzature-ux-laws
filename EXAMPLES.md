@@ -47,10 +47,10 @@ sprezzature-ux-laws-audit public/
 ## JSON output for machine consumption
 
 ```bash
-sprezzature-ux-laws-audit --json public/index.html | jq 'length'
+sprezzature-ux-laws-audit --json public/index.html
 ```
 
-Output:
+Output (piped through `jq 'length'`, the same run prints `3`):
 
 ```json
 [

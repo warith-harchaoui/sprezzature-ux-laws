@@ -4,6 +4,17 @@ All notable changes to sprezzature-ux-laws are documented here.
 
 ## [Unreleased]
 
+### Docs
+
+- README.md and LISEZMOI.md: the `[dev]` extra lists httpx2 too, and running
+  `uvicorn sprezzature_ux_laws.api:app` is said to serve the routes only, with
+  `/mcp` mounted by `sprezzature-ux-laws-mcp`.
+- EXAMPLES.md: the JSON example piped into `jq 'length'` and showed the array;
+  it now shows the array and says the pipe prints `3`.
+- CODING.md and the auditor's docstrings: the checks are stdlib only, the
+  command line parses with click; the Jakob check names every control child
+  it accepts and the label exemption; `Finding.severity` includes `info`.
+
 ## [1.4.0] — 2026-11-04: click everywhere, and two refusals
 
 ### Changed
