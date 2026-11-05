@@ -4,6 +4,8 @@ All notable changes to sprezzature-ux-laws are documented here.
 
 ## [Unreleased]
 
+## [1.4.1] — 2026-11-05
+
 ### Fixed
 
 - **`--fix` writes a file only when a fixer changed something.** The loop
