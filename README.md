@@ -43,11 +43,12 @@ Eight laws, in the order the checks run. The slug is the name every surface uses
 Interactive elements are `<button>`, `<a>`, `<input>`, `<select>`, `<textarea>` and
 `<summary>`. What each check leaves alone:
 
-- **Miller** skips text inside `<script>` and `<style>`, the values of `class`, `id`,
-  `href` and `src`, purely alphabetic words, and names shaped as three or more letters
-  followed by digits only (`GMTED2010`, `LANDSAT8`, `ISO14001`): those are names of
-  standards or datasets, and the fixer would otherwise split them with non-breaking
-  spaces.
+- **Miller** reads visible text only: it skips the lines of a `<script>` or `<style>`
+  block, the tags themselves with their attributes (and, on a tag split across lines,
+  the values of `class`, `id`, `href` and `src`), purely alphabetic words, and names
+  shaped as three or more letters followed by digits only (`GMTED2010`, `LANDSAT8`,
+  `ISO14001`): those are names of standards or datasets, and the fixer would otherwise
+  split them with non-breaking spaces.
 - **Jakob** also leaves a styled `<span>` or `<div>` inside a `<label>` that holds an
   `<input>`, `<select>` or `<textarea>`: the form control carries the semantics.
 - **Fitts** skips `<input type="hidden">`, and treats an `<a>` as a text link rather
@@ -156,8 +157,8 @@ Four laws have a fixer. The other four (`hick`, `choice-overload`,
 |---|---|
 | `fitts` | Adds `min-h-11` to the element's `class` attribute. |
 | `aesthetic-usability` | Adds `focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-blue`. |
-| `miller` | Splits the run into groups of four from the right, joined by non-breaking spaces. |
-| `jakob` | Rewrites a single-line `<div>` or `<span>` to `<button>`, and removes `role="button"`. |
+| `miller` | Splits the visible run into groups of four from the right, joined by non-breaking spaces. The same run in a tag (an `href`, a `data-` value) is left as it is. |
+| `jakob` | Rewrites the clickable `<div>` or `<span>` to `<button>`, and removes `role="button"`, when it opens and closes on one line and holds no real control. A wrapper around it is left alone. |
 
 The fixer re-audits and repeats, up to five passes, because rewriting a `<div>` into a
 `<button>` creates new Fitts and focus-ring findings. A second run on a repaired file

@@ -438,6 +438,78 @@ def test_fix_mode_is_idempotent(tmp_path: Path) -> None:
     assert not remaining_again
 
 
+def test_miller_fix_leaves_the_markup_alone(tmp_path: Path) -> None:
+    """The Miller fixer chunks the visible run, never the same run in a tag.
+
+    The check strips tags and attribute values before it looks, so the run it
+    reports is visible text. The fixer used to replace the first occurrence on
+    the raw line, which is often an ``href`` or a ``data-`` value standing
+    before the text: the link got non-breaking spaces inside its URL, and a
+    second pass then chunked the text too, so the run looked clean.
+    """
+    from audit_laws_of_ux import fix_file
+
+    nbsp = "\u00a0"
+    page = tmp_path / "order.html"
+    page.write_text(
+        '<p><a href="/orders/AB12CD34EF">Order AB12CD34EF</a></p>\n'
+        '<p data-sku="XAB12CD34EF">AB12CD34EF</p>\n',
+        encoding="utf-8",
+    )
+    applied, _, remaining = fix_file(page, {"miller"})
+    text = page.read_text(encoding="utf-8")
+
+    assert 'href="/orders/AB12CD34EF"' in text
+    assert 'data-sku="XAB12CD34EF"' in text
+    assert f">Order AB{nbsp}12CD{nbsp}34EF</a>" in text
+    assert f">AB{nbsp}12CD{nbsp}34EF</p>" in text
+    # One edit per finding: the old fixer needed four for these two.
+    assert applied == 2
+    assert not remaining
+
+
+def test_jakob_fix_rewrites_the_clickable_element_not_its_wrapper(tmp_path: Path) -> None:
+    """The Jakob fixer turns the flagged element into a button, and only it.
+
+    It used to rename the first ``<div>`` or ``<span>`` on the line and the
+    first closing tag of that name: the wrapping card became a button, the
+    next pass made the span a second button inside it, and the run reported
+    nothing left on invalid HTML.
+    """
+    from audit_laws_of_ux import audit_file, fix_file
+
+    page = tmp_path / "card.html"
+    page.write_text(
+        '<div class="card"><span onclick="go()">Open</span></div>\n'
+        '<div role="button" class="tile"><div>inner</div> more</div>\n',
+        encoding="utf-8",
+    )
+    applied, _, remaining = fix_file(page, {"jakob"})
+    text = page.read_text(encoding="utf-8")
+
+    assert '<div class="card"><button onclick="go()">Open</button></div>' in text
+    assert '<button class="tile"><div>inner</div> more</button>' in text
+    assert text.count("<button") == 2
+    assert applied == 2
+    assert not remaining
+    assert not audit_file(page, {"jakob"})
+
+
+def test_jakob_fix_leaves_a_multi_line_element_for_the_maintainer(tmp_path: Path) -> None:
+    """An element whose closing tag is on another line is reported, not half-renamed."""
+    from audit_laws_of_ux import fix_file
+
+    original = '<span class="cursor-pointer"\n  >Open</span>\n'
+    page = tmp_path / "multi.html"
+    page.write_text(original, encoding="utf-8")
+    applied, unfixable, remaining = fix_file(page, {"jakob"})
+
+    assert applied == 0
+    assert unfixable == 1
+    assert [f.law for f in remaining] == ["jakob"]
+    assert page.read_text(encoding="utf-8") == original
+
+
 def test_fix_mode_dry_run_does_not_write(tmp_path: Path) -> None:
     """--fix --dry-run reports what would change without touching disk."""
     from audit_laws_of_ux import fix_file

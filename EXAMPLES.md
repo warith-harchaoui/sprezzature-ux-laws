@@ -135,11 +135,12 @@ freshly minted `<button>`, which the loop then fixes in a later pass;
 
 Laws with a fixer: `fitts` (adds `min-h-11`), `aesthetic-usability`
 (adds `focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-blue`),
-`miller` (splits a long digit-bearing run into groups of four with
-non-breaking spaces; names such as `GMTED2010` are never flagged, so never
-split), `jakob` (rewrites a clickable `<div>` or
-`<span>` that fits on one line to a real `<button>`, removing
-`role="button"`). A fixer can only add
+`miller` (splits a long digit-bearing run of visible text into groups of
+four with non-breaking spaces, and leaves the same run in an `href` or any
+other attribute alone; names such as `GMTED2010` are never flagged, so never
+split), `jakob` (rewrites the clickable `<div>` or `<span>` itself, never a
+wrapper around it, to a real `<button>`, removing `role="button"`, when it
+opens and closes on one line and holds no real control). A fixer can only add
 tokens to a `class="…"` attribute that already exists on the element;
 an element with no `class` attribute at all is reported but left
 untouched, and shows up again as `remaining` after the fix pass.

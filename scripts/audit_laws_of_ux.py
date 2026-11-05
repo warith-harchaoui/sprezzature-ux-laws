@@ -165,7 +165,7 @@ RE_LONG_RUN: re.Pattern[str] = re.compile(r"[A-Za-z0-9]{8,}")
 RE_ACRONYM_NUMBER: re.Pattern[str] = re.compile(r"[A-Za-z]{3,}\d+")
 
 #: Regex catching ``HH:MM`` or ``HH:MM:SS`` time strings. The Tesler check
-#: then looks for a timezone token within ~20 chars on either side.
+#: then looks for a timezone token within 40 characters on either side.
 RE_TIME_STAMP: re.Pattern[str] = re.compile(r"\b\d{1,2}:\d{2}(?::\d{2})?\b")
 
 #: Regex of timezone tokens that suppress a Tesler warning when found near
@@ -1159,68 +1159,100 @@ def _fix_miller(lines: list[str], finding: Finding) -> bool:
     if not m:
         return False
     run: str = m.group(1)
-    if run not in lines[idx]:
-        return False
-    chunked: str = _chunk_digits(run)
-    # ``replace`` is idempotent for our case: once the run has been
-    # replaced by ``chunked``, the raw run string no longer appears
-    # on the line, so a second pass is a no-op.
-    new_line: str = lines[idx].replace(run, chunked, 1)
-    if new_line == lines[idx]:
-        return False
-    lines[idx] = new_line
-    return True
+    line: str = lines[idx]
+    # Only an occurrence the reader sees may be rewritten. The check reads the
+    # line with its tags and attribute values removed, but the same run often
+    # sits in the markup too, and earlier: ``<a href="/orders/AB12CD34EF">``
+    # before the visible ``AB12CD34EF``. A plain ``replace(run, ..., 1)``
+    # chunked the href first, with non-breaking spaces inside a URL, and the
+    # re-audit then chunked the text as well: the page looked repaired and its
+    # link was broken. Masked: every tag, and every quoted attribute value, so
+    # a tag whose attributes run onto this line from the one above is covered
+    # too. Masking too much only leaves a finding unfixed, which is reported.
+    masked: list[tuple[int, int]] = [
+        (t.start(), t.end())
+        for t in re.finditer(r"<[^>]*>?|[\w:-]+\s*=\s*(?:\"[^\"]*\"|'[^']*')", line)
+    ]
+    # A whole run, as the check found it, and not the tail of a longer token.
+    # Idempotent: once chunked, the run no longer appears on the line.
+    for hit in re.finditer(rf"(?<![A-Za-z0-9]){re.escape(run)}(?![A-Za-z0-9])", line):
+        if any(start <= hit.start() < end for start, end in masked):
+            continue
+        lines[idx] = line[: hit.start()] + _chunk_digits(run) + line[hit.end() :]
+        return True
+    return False
+
+
+#: An opening ``<div>`` or ``<span>`` tag, with its attribute text.
+_RE_DIV_SPAN_OPEN: re.Pattern[str] = re.compile(r"<(div|span)\b([^>]*)>", re.I)
+
+#: What makes a ``<div>`` / ``<span>`` act as a button, read off the
+#: attribute text the way :func:`check_jakob` reads the parsed attributes.
+_RE_CLICKABLE_ATTR: re.Pattern[str] = re.compile(
+    r"\bonclick\s*=|\brole\s*=\s*[\"']?button\b"
+    r"|\bclass\s*=\s*([\"'])(?:(?!\1).)*\bcursor-pointer\b",
+    re.I,
+)
+
+#: A real control inside the element: :func:`check_jakob` does not flag it,
+#: so the fixer must not turn it into a button around a button.
+_RE_REAL_CONTROL: re.Pattern[str] = re.compile(r"<(?:button|a|input|select|summary)\b", re.I)
 
 
 def _fix_jakob(lines: list[str], finding: Finding) -> bool:
     """
     Rewrite a clickable ``<div>`` / ``<span>`` to a real ``<button>``.
 
-    Conservative: only handles the single-line case, and only the first
-    ``<div>`` or ``<span>`` found on that line. Multi-line elements, and
-    a second offending element sharing the line with the one actually
-    flagged, are left for the maintainer; running the auditor again
-    after the fix will still flag whatever is left, which is the right
-    behaviour.
+    Conservative: only the single-line case. The element rewritten is the
+    first ``<div>`` / ``<span>`` on the line that is clickable the way the
+    check means it (``onclick``, ``role="button"`` or ``cursor-pointer``),
+    holds no real control, and closes on the same line; its own closing tag
+    is found by counting nesting. Anything else is left for the maintainer,
+    and the re-audit keeps reporting it.
+
+    It used to rename the *first* ``<div>`` or ``<span>`` on the line and the
+    first matching close tag, whichever element they were. On
+    ``<div class="card"><span onclick="go()">Open</span></div>`` that made
+    the card a button, then on the next pass the span a second button inside
+    it, and the run reported zero findings left on invalid HTML.
     """
     idx: int = finding.line - 1
     if not (0 <= idx < len(lines)):
         return False
     line: str = lines[idx]
-    for src_tag in ("div", "span"):
-        # Track whether either path opened a tag rewrite: if so we
-        # need to rewrite the matching close tag on the same line.
-        opened: bool = False
-        # Path A: strip ``role="button"`` and rename the tag in one
-        # pass (handles ``<div role="button" class="…">``).
-        role_pat = re.compile(rf'<{src_tag}\b([^>]*?)\s+role="button"([^>]*?)>')
-        new_line = role_pat.sub(r"<button\1\2>", line, count=1)
-        if new_line != line:
-            line = new_line
-            opened = True
-        # Path B: rename a bare ``<div onclick=…>`` /
-        # ``<div class="cursor-pointer">`` whose opening tag still
-        # carries the source tag name. Only run if Path A did not
-        # already convert this element (avoid double-rewrite).
-        if not opened and re.search(rf"<{src_tag}\b", line):
-            line = re.sub(rf"<{src_tag}\b", "<button", line, count=1)
-            opened = True
-        # Whichever path opened the tag, rewrite the matching close.
-        # We only ever rewrite ONE close tag per fixer invocation to
-        # keep the surgery local to the flagged element.
-        if opened and re.search(rf"</{src_tag}>", line):
-            line = re.sub(rf"</{src_tag}>", "</button>", line, count=1)
-        # Stop once one tag type has been rewritten: trying the other
-        # src_tag against the now-mutated line risked rewriting an
-        # unrelated <span> elsewhere on the same line after a <div> was
-        # already fixed (or vice versa), which is not the element this
-        # finding was about.
-        if opened:
-            break
-    if line == lines[idx]:
-        return False
-    lines[idx] = line
-    return True
+    for m in _RE_DIV_SPAN_OPEN.finditer(line):
+        if not _RE_CLICKABLE_ATTR.search(m.group(2)):
+            continue
+        tag: str = m.group(1)
+        # Find this element's own closing tag: same-name tags opened inside
+        # it raise the depth, and only the close at depth zero is its own.
+        depth: int = 0
+        close: re.Match[str] | None = None
+        for t in re.finditer(rf"<(/?){tag}\b[^>]*>", line[m.end() :], re.I):
+            if not t.group(1):
+                depth += 1
+            elif depth:
+                depth -= 1
+            else:
+                close = t
+                break
+        if close is None:
+            continue
+        inner: str = line[m.end() : m.end() + close.start()]
+        if _RE_REAL_CONTROL.search(inner):
+            continue
+        # ``role="button"`` is what a <button> already is; keep every other
+        # attribute (class, onclick, aria-*) as it was.
+        attrs: str = re.sub(r"""\s+role\s*=\s*(["']?)button\1(?=[\s/>]|$)""", "", m.group(2))
+        lines[idx] = (
+            line[: m.start()]
+            + f"<button{attrs}>"
+            + inner
+            + "</button>"
+            + line[m.end() + close.end() :]
+        )
+        return True
+    return False
 
 
 #: Map of law → fixer. Laws absent from this map are reported but

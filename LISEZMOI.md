@@ -49,11 +49,12 @@ toutes les surfaces emploient.
 Les éléments interactifs sont `<button>`, `<a>`, `<input>`, `<select>`, `<textarea>` et
 `<summary>`. Ce que chaque vérification laisse passer :
 
-- **Miller** ignore le texte des blocs `<script>` et `<style>`, les valeurs de `class`,
-  `id`, `href` et `src`, les mots purement alphabétiques, et les noms formés d'au moins
-  trois lettres suivies de chiffres seulement (`GMTED2010`, `LANDSAT8`, `ISO14001`) :
-  ce sont des noms de normes ou de jeux de données, que le correcteur couperait sinon
-  d'espaces insécables.
+- **Miller** ne lit que le texte visible : il ignore les lignes d'un bloc `<script>`
+  ou `<style>`, les balises elles-mêmes avec leurs attributs (et, sur une balise coupée
+  en plusieurs lignes, les valeurs de `class`, `id`, `href` et `src`), les mots purement
+  alphabétiques, et les noms formés d'au moins trois lettres suivies de chiffres
+  seulement (`GMTED2010`, `LANDSAT8`, `ISO14001`) : ce sont des noms de normes ou de
+  jeux de données, que le correcteur couperait sinon d'espaces insécables.
 - **Jakob** laisse aussi passer un `<span>` ou un `<div>` stylé à l'intérieur d'un
   `<label>` qui contient un `<input>`, un `<select>` ou un `<textarea>` : c'est le
   contrôle de formulaire qui porte la sémantique.
@@ -169,8 +170,8 @@ retouche de texte.
 |---|---|
 | `fitts` | Ajoute `min-h-11` à l'attribut `class` de l'élément. |
 | `aesthetic-usability` | Ajoute `focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-blue`. |
-| `miller` | Coupe la suite en groupes de quatre depuis la droite, joints par des espaces insécables. |
-| `jakob` | Réécrit un `<div>` ou un `<span>` tenant sur une ligne en `<button>`, et retire `role="button"`. |
+| `miller` | Coupe la suite visible en groupes de quatre depuis la droite, joints par des espaces insécables. La même suite dans une balise (un `href`, une valeur `data-`) reste telle quelle. |
+| `jakob` | Réécrit le `<div>` ou le `<span>` cliquable en `<button>`, et retire `role="button"`, s'il s'ouvre et se ferme sur la même ligne et ne contient aucun vrai contrôle. Un conteneur autour de lui reste intact. |
 
 Le correcteur réaudite et recommence, jusqu'à cinq passes, parce que réécrire un
 `<div>` en `<button>` crée de nouveaux constats Fitts et anneau de focus. Une seconde

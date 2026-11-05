@@ -84,7 +84,10 @@ from sprezzature_ux_laws import LAWS
     "dry_run",
     is_flag=True,
     default=False,
-    help="With --fix, print what would change without touching the files.",
+    help=(
+        "With --fix, print what would change without touching the files. "
+        "Implies --fix when used alone."
+    ),
 )
 def main(
     targets: tuple[Path, ...],

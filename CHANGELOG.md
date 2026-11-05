@@ -4,6 +4,38 @@ All notable changes to sprezzature-ux-laws are documented here.
 
 ## [Unreleased]
 
+### Fixed
+
+- **The Miller fixer chunks the run the reader sees, never the markup.**
+  The check strips tags and attribute values before it looks, but the fixer
+  replaced the first occurrence of the run on the raw line, which is often
+  an `href` or a `data-` value standing before the text:
+  `<a href="/orders/AB12CD34EF">` came back with non-breaking spaces inside
+  its URL, a second pass then chunked the text too, and the run reported
+  nothing left. It now rewrites a whole run outside every tag and quoted
+  attribute value, or nothing.
+- **The Jakob fixer rewrites the clickable element, not the first `<div>` or
+  `<span>` on the line.** On `<div class="card"><span onclick="go()">` it
+  made the card a button, then the span a second button inside it, and
+  reported zero findings on invalid HTML; it also renamed the first closing
+  tag of that name rather than the element's own. It now picks the element
+  that is clickable the way the check means it, holds no real control and
+  closes on the same line, finds its own closing tag by nesting, and leaves
+  anything else reported as unfixable.
+
+### Docs
+
+- README, LISEZMOI, EXAMPLES.md and the skill say what Miller skips as it
+  is: every tag and its attributes on the line, not only `class`, `id`,
+  `href` and `src` (those four are what it strips on a tag split across
+  lines), and that `--fix` leaves the same run inside a tag alone. The Jakob
+  row says which element is rewritten and when it is left.
+- `sprezzature-ux-laws --help` says `--dry-run` implies `--fix`, as it
+  already did and as the per-tool script's help said.
+
+Three regression tests in `tests/test_ux_laws.py`, each failing on the old
+fixers.
+
 ## [1.4.1] — 2026-11-05
 
 ### Fixed
