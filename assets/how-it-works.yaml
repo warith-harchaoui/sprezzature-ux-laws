@@ -46,7 +46,7 @@ en:
   outcome:
     label: A screen whose measurable mistakes are gone, which is not the same as a screen that answers the right question
     note: "Where the two responsive states are ambiguous the count goes up rather than down: a control that appears at md and disappears at lg is treated as desktop-only. Over-reporting sends somebody to look. Under-reporting ships."
-  footer: No dependencies at all, which is the point of it and the reason it is cheap enough for a pre-commit hook. It is a fast gate, not a substitute for design review.
+  footer: The checks use the Python standard library only, with no browser and no network, which is the point of it and the reason it is cheap enough for a pre-commit hook. It is a fast gate, not a substitute for design review.
 
 fr:
   title: Comment fonctionne sprezzature-ux-laws
@@ -86,4 +86,4 @@ fr:
   outcome:
     label: Un écran dont les fautes mesurables ont disparu, ce qui n'est pas la même chose qu'un écran qui répond à la bonne question
     note: "Quand les deux états responsives sont ambigus, le décompte monte plutôt qu'il ne descend : une commande qui apparaît en md et disparaît en lg est traitée comme réservée au bureau. Surévaluer envoie quelqu'un regarder. Sous-évaluer part en production."
-  footer: Aucune dépendance, ce qui en fait tout l'intérêt et le rend assez léger pour un crochet de pre-commit. C'est une barrière rapide, pas un substitut à la revue de conception.
+  footer: "Les contrôles n'emploient que la bibliothèque standard de Python, sans navigateur ni réseau, ce qui en fait tout l'intérêt et les rend assez légers pour un crochet de pre-commit. C'est une barrière rapide, pas un substitut à la revue de conception."

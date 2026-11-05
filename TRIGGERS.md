@@ -113,4 +113,4 @@ not "this interface is good".
 
 `*.html` and `*.htm` route here when one of the objects above is in question, and, per
 the generalisation, when such a file was just written. A directory target is searched
-for `*.html` only.
+for both.

@@ -4,6 +4,24 @@ All notable changes to sprezzature-ux-laws are documented here.
 
 ## [Unreleased]
 
+### Fixed
+
+- **`--fix` writes a file only when a fixer changed something.** The loop
+  wrote the page before every audit pass, so a run with zero edits still
+  rewrote it.
+- **`--fix` keeps the line endings.** The file was read with universal
+  newlines and written back with `\n`, so every CRLF page came back LF. It
+  is now read as bytes and written back in its own endings.
+- **A directory target picks up `.htm` files**, as a file target already
+  did. It searched for `*.html` only.
+
+### Changed
+
+- **`sprezzature-ux-laws -V`** prints the version, like the other two
+  commands; only `--version` worked on the click command.
+
+Five regression tests in `tests/test_ux_laws.py`.
+
 ### Docs
 
 - README.md and LISEZMOI.md: the `[dev]` extra lists httpx2 too, and running
@@ -14,6 +32,12 @@ All notable changes to sprezzature-ux-laws are documented here.
 - CODING.md and the auditor's docstrings: the checks are stdlib only, the
   command line parses with click; the Jakob check names every control child
   it accepts and the label exemption; `Finding.severity` includes `info`.
+- README.md, LISEZMOI.md and TRIGGERS.md: `-V` on every command, `.htm` in
+  directory targets, and `--fix` writing only on a change, in the file's own
+  line endings.
+- `assets/how-it-works.yaml`: the footer said "No dependencies at all"; the
+  checks use the standard library only, the package has base dependencies.
+  The figure is redrawn from the hub.
 
 ## [1.4.0] — 2026-11-04: click everywhere, and two refusals
 

@@ -41,7 +41,7 @@ from sprezzature_ux_laws import LAWS
         "the raw HTML text, with no browser and no human reviewer."
     ),
 )
-@click.version_option(package_name="sprezzature-ux-laws")
+@click.version_option(None, "-V", "--version", package_name="sprezzature-ux-laws")
 @click.argument(
     "targets",
     nargs=-1,

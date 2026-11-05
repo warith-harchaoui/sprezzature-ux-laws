@@ -131,10 +131,10 @@ that handler too.
 | `--ignore LAWS` | Comma-separated slugs to skip. |
 | `--fix` | Apply the mechanical fixes in place. |
 | `--dry-run` | Report what `--fix` would apply, without writing. Implies `--fix`. |
-| `--version` | Print the version (`-V` also works on `sprezzature-ux-laws-audit`). |
+| `-V`, `--version` | Print the version. |
 
-A target is an `.html` or `.htm` file, or a directory searched recursively for
-`*.html`. Any other existing file is skipped with a warning. A path that does not
+A target is an `.html` or `.htm` file, or a directory searched recursively for both
+suffixes, in any case. Any other existing file is skipped with a warning. A path that does not
 exist is refused by both commands (exit `2`).
 
 Exit codes:
@@ -163,7 +163,8 @@ The fixer re-audits and repeats, up to five passes, because rewriting a `<div>` 
 `<button>` creates new Fitts and focus-ring findings. A second run on a repaired file
 applies zero edits. A fixer only extends a `class` attribute that already exists: an
 element without one is counted as unfixable and stays among the remaining findings.
-`--fix` rewrites the page, so diff the result before committing it.
+`--fix` writes the page only when a fixer changed something, and keeps its line endings
+(a CRLF file stays CRLF). It rewrites the page, so diff the result before committing it.
 
 ## From Python
 

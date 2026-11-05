@@ -1248,6 +1248,9 @@ def fix_file(
     """
     Apply mechanical fixes to one HTML file and rewrite it in place.
 
+    The file is written only when a fixer changed something, and keeps its
+    line endings: a CRLF file stays CRLF.
+
     Idempotent: a second invocation against a fixed file applies zero
     edits. Laws not present in :data:`LAW_FIXERS` are passed through
     untouched (they need design decisions, not text edits).
@@ -1283,8 +1286,21 @@ def fix_file(
         attribute for :func:`_insert_class_tokens` to extend); and the
         residual findings observed after the final write.
     """
-    raw: str = path.read_text(encoding="utf-8", errors="replace")
+    # Read the bytes, not the text: ``read_text`` translates ``\r\n`` to
+    # ``\n`` on the way in, so the line endings were gone before any fixer
+    # ran, and the rewrite below turned every CRLF file into an LF one.
+    original: str = path.read_bytes().decode("utf-8", errors="replace")
+    newline: str = "\r\n" if "\r\n" in original else "\n"
+    # The checks see what ``audit_file`` sees: universal newlines.
+    raw: str = original.replace("\r\n", "\n")
     bare_lines: list[str] = raw.splitlines()
+    label: str = str(path)
+
+    def current_text() -> str:
+        """The working copy as text, with the file's own trailing newline."""
+        text: str = "\n".join(bare_lines)
+        return text + "\n" if raw.endswith("\n") else text
+
     applied: int = 0
     skipped: int = 0
     # Dry-run: report what the FIRST pass would apply, without
@@ -1308,15 +1324,12 @@ def fix_file(
         return applied, skipped, findings
 
     # Live fix loop. Re-audit after each round so fixers that create
-    # new findings (Jakob) reach a fixed point.
+    # new findings (Jakob) reach a fixed point. The re-audit reads the
+    # working copy in memory: writing the file before every pass rewrote it
+    # even when no fixer had changed a byte.
     skipped_seen: bool = False
     for _ in range(MAX_FIX_ITERATIONS):
-        # Write current state so the re-audit sees the latest text.
-        new_text: str = "\n".join(bare_lines)
-        if raw.endswith("\n"):
-            new_text += "\n"
-        path.write_text(new_text, encoding="utf-8")
-        findings = audit_file(path, laws)
+        findings = audit_html(current_text(), laws, label)
         round_applied: int = 0
         round_skipped: int = 0
         for f in findings:
@@ -1341,12 +1354,12 @@ def fix_file(
             skipped_seen = True
         if round_applied == 0:
             break
-    # Final write + final re-audit for the truthful remaining list.
-    new_text = "\n".join(bare_lines)
-    if raw.endswith("\n"):
-        new_text += "\n"
-    path.write_text(new_text, encoding="utf-8")
-    remaining: list[Finding] = audit_file(path, laws)
+    # Write only when a fixer changed something, in the file's own line
+    # endings, then re-audit the result for the truthful remaining list.
+    final: str = current_text()
+    if final != raw:
+        path.write_bytes(final.replace("\n", newline).encode("utf-8"))
+    remaining: list[Finding] = audit_html(final, laws, label)
     return applied, skipped, remaining
 
 
@@ -1428,9 +1441,16 @@ def audit_file(path: Path, laws: set[str] | None = None) -> list[Finding]:
     return audit_html(path.read_text(encoding="utf-8", errors="replace"), laws, str(path))
 
 
+#: Suffixes a target is audited under, as a file or inside a directory.
+HTML_SUFFIXES: frozenset[str] = frozenset({".html", ".htm"})
+
+
 def discover(targets: list[Path]) -> list[Path]:
     """
-    Expand CLI targets into a list of ``.html`` files.
+    Expand CLI targets into a list of ``.html`` / ``.htm`` files.
+
+    A directory is searched recursively for both suffixes, in any case,
+    the same set a file target is accepted with.
 
     Parameters
     ----------
@@ -1446,11 +1466,13 @@ def discover(targets: list[Path]) -> list[Path]:
     out: list[Path] = []
     for t in targets:
         if t.is_dir():
-            for p in sorted(t.rglob("*.html")):
+            for p in sorted(
+                q for q in t.rglob("*") if q.is_file() and q.suffix.lower() in HTML_SUFFIXES
+            ):
                 if p not in seen:
                     seen.add(p)
                     out.append(p)
-        elif t.is_file() and t.suffix.lower() in {".html", ".htm"}:
+        elif t.is_file() and t.suffix.lower() in HTML_SUFFIXES:
             if t not in seen:
                 seen.add(t)
                 out.append(t)

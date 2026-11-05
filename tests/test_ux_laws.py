@@ -652,3 +652,80 @@ def test_a_missing_path_is_refused_by_the_per_tool_script(
     missing = tmp_path / "nope.html"
     assert main([str(missing)]) == 2
     assert "no such file or directory" in capsys.readouterr().err
+
+
+def test_fix_mode_leaves_a_file_with_nothing_to_fix_untouched(tmp_path: Path) -> None:
+    """A live --fix that changes nothing does not rewrite the file.
+
+    The loop used to write the page before every audit pass, so a run with
+    zero edits still rewrote it (and turned CRLF into LF on the way).
+    """
+    from audit_laws_of_ux import fix_file
+
+    page = tmp_path / "clean.html"
+    original = b"<p>Hello</p>\r\n<p>World</p>"
+    page.write_bytes(original)
+    before = page.stat().st_mtime_ns
+    applied, _, _ = fix_file(page, {"fitts", "aesthetic-usability", "miller", "jakob"})
+    assert applied == 0
+    assert page.read_bytes() == original
+    assert page.stat().st_mtime_ns == before
+
+
+def test_fix_mode_keeps_crlf_line_endings(tmp_path: Path) -> None:
+    """A CRLF file that --fix repairs is written back in CRLF."""
+    from audit_laws_of_ux import fix_file
+
+    page = tmp_path / "crlf.html"
+    page.write_bytes(
+        b"<!DOCTYPE html><html><body>\r\n"
+        b'<button class="px-4 bg-blue-600">Go</button>\r\n'
+        b"</body></html>\r\n"
+    )
+    applied, _, remaining = fix_file(page, {"fitts", "aesthetic-usability"})
+    assert applied >= 1
+    assert not remaining
+    data = page.read_bytes()
+    assert b"min-h-11" in data
+    assert data.count(b"\r\n") == 3
+    assert b"\n" not in data.replace(b"\r\n", b"")
+
+
+def test_fix_mode_keeps_lf_line_endings(tmp_path: Path) -> None:
+    """An LF file stays LF, with its trailing newline (or lack of one)."""
+    from audit_laws_of_ux import fix_file
+
+    page = tmp_path / "lf.html"
+    page.write_bytes(b'<p>x</p>\n<button class="px-4 bg-blue-600">Go</button>')
+    fix_file(page, {"fitts"})
+    data = page.read_bytes()
+    assert b"\r" not in data
+    assert data.endswith(b"</button>")
+    assert b"min-h-11" in data
+
+
+def test_discover_picks_up_htm_inside_a_directory(tmp_path: Path) -> None:
+    """A directory target yields .htm files as well as .html, as a file target does."""
+    from audit_laws_of_ux import discover
+
+    (tmp_path / "a.html").write_text("<p>a</p>", encoding="utf-8")
+    sub = tmp_path / "old"
+    sub.mkdir()
+    (sub / "b.htm").write_text("<p>b</p>", encoding="utf-8")
+    (sub / "c.HTM").write_text("<p>c</p>", encoding="utf-8")
+    (sub / "notes.txt").write_text("x", encoding="utf-8")
+    found = {p.name for p in discover([tmp_path])}
+    assert found == {"a.html", "b.htm", "c.HTM"}
+
+
+def test_the_click_command_answers_short_version() -> None:
+    """``sprezzature-ux-laws -V`` prints the version, like the other two commands."""
+    from click.testing import CliRunner
+
+    import sprezzature_ux_laws
+    from sprezzature_ux_laws.cli import main
+
+    for flag in ("-V", "--version"):
+        result = CliRunner().invoke(main, [flag])
+        assert result.exit_code == 0, result.output
+        assert sprezzature_ux_laws.__version__ in result.output

@@ -143,10 +143,10 @@ gestionnaire.
 | `--ignore LOIS` | Identifiants à écarter, séparés par des virgules. |
 | `--fix` | Applique sur place les corrections mécaniques. |
 | `--dry-run` | Dit ce que `--fix` appliquerait, sans rien écrire. Implique `--fix`. |
-| `--version` | Affiche la version (`-V` marche aussi pour `sprezzature-ux-laws-audit`). |
+| `-V`, `--version` | Affiche la version. |
 
 Une cible est un fichier `.html` ou `.htm`, ou un dossier parcouru récursivement à la
-recherche de `*.html`. Tout autre fichier existant est ignoré avec un avertissement.
+recherche des deux suffixes, en majuscules comme en minuscules. Tout autre fichier existant est ignoré avec un avertissement.
 Un chemin qui n'existe pas est refusé par les deux commandes (code `2`).
 
 Codes de sortie :
@@ -176,8 +176,9 @@ Le correcteur réaudite et recommence, jusqu'à cinq passes, parce que réécrir
 `<div>` en `<button>` crée de nouveaux constats Fitts et anneau de focus. Une seconde
 exécution sur un fichier réparé n'applique aucune retouche. Un correcteur ne fait
 qu'étendre un attribut `class` existant : un élément qui n'en a pas est compté comme
-non corrigeable et reste parmi les constats restants. `--fix` réécrit la page :
-relisez le diff avant de le committer.
+non corrigeable et reste parmi les constats restants. `--fix` n'écrit la page que si un
+correcteur a changé quelque chose, et garde ses fins de ligne (un fichier CRLF reste
+CRLF). Il réécrit la page : relisez le diff avant de le committer.
 
 ## Depuis Python
 
