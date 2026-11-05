@@ -4,6 +4,8 @@ All notable changes to sprezzature-ux-laws are documented here.
 
 ## [Unreleased]
 
+## [1.4.2] — 2026-11-05
+
 ### Fixed
 
 - **The Miller fixer chunks the run the reader sees, never the markup.**
