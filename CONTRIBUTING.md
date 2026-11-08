@@ -30,7 +30,7 @@ ruff check .
 
 ## Types
 
-The CI also runs mypy, in two invocations because `scripts/` imports its
+The pre-push hook also runs mypy, in two invocations because `scripts/` imports its
 siblings by bare name:
 
 ```bash
