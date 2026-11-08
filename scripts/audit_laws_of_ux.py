@@ -159,6 +159,9 @@ RE_TW_STATUS_COLOUR: re.Pattern[str] = re.compile(
 #: space, dash, slash, or non-breaking space. Used by the Miller check.
 RE_LONG_RUN: re.Pattern[str] = re.compile(r"[A-Za-z0-9]{8,}")
 
+#: An HTML comment, possibly over several lines. Used by the Miller check.
+RE_COMMENT: re.Pattern[str] = re.compile(r"<!--.*?-->", re.S)
+
 #: Letters then digits and nothing after: the shape of a named standard or
 #: dataset (``GMTED2010``, ``LANDSAT8``, ``ISO14001``) rather than of an
 #: order number. Miller's chunking is skipped on these; see ``check_miller``.
@@ -178,9 +181,15 @@ RE_TIME_STAMP: re.Pattern[str] = re.compile(r"\b\d{1,2}:\d{2}(?::\d{2})?\b")
 #: ``\bZ\b`` match (space-separated ``12:34 Z``) or over-matching ordinary
 #: words ending in ``Z`` (``AZ``, ``XZ99``), since it still requires a
 #: digit immediately before the ``Z``.
+#:
+#: A numeric offset has to look like one: glued to the minutes
+#: (``14:30+02:00``) or standing on its own (``14:30 +02:00``), and at most
+#: 14 hours. It used to be any sign followed by a digit, which ``px-4``,
+#: ``text-gray-500``, the ``-08`` of a date and the ``+33`` of a phone number
+#: all are, so on a Tailwind page almost no time was ever reported.
 RE_TZ_TOKEN: re.Pattern[str] = re.compile(
     r"\b(?:UTC|GMT|CET|CEST|EST|EDT|PST|PDT|JST|Z)\b|(?<=\d)Z\b|"
-    r"[+-]\d{1,2}:?\d{0,2}|"
+    r"(?:(?<=:\d\d)|(?<![\w-]))[+-](?:0?\d|1[0-4])(?::?[0-5]\d)?\b|"
     r"[A-Z][a-z]+/[A-Z][a-z_]+"
 )
 
@@ -209,12 +218,15 @@ STATUS_WORDS: frozenset[str] = frozenset(
         "failed",
         "failure",
         "fail",
+        "failing",
         "ok",
         "okay",
         "success",
+        "successful",
         "succeeded",
         "saved",
         "warning",
+        "warnings",
         "warn",
         "caution",
         "info",
@@ -250,6 +262,11 @@ class Finding:
     snippet : str
         ≤ 120-char excerpt of the offending source. Whitespace
         collapsed for readability.
+    column : int
+        0-based offset of the element's ``<`` on its line, set by the checks
+        whose fixer edits that one tag; ``-1`` otherwise. Not reported: it
+        tells the fixer which element a finding is about, on a line that
+        holds several.
     """
 
     law: str
@@ -258,6 +275,7 @@ class Finding:
     line: int
     message: str
     snippet: str = ""
+    column: int = -1
 
 
 # ── HTML walker ────────────────────────────────────────────────────────────
@@ -286,6 +304,8 @@ class Element:
     text_chunks : list of str
         Visible text directly inside this element (does not include
         text in descendants).
+    column : int
+        0-based offset of the element's ``<`` on its line.
     """
 
     tag: str
@@ -293,6 +313,7 @@ class Element:
     line: int
     parent: int
     text_chunks: list[str] = field(default_factory=list)
+    column: int = 0
 
 
 class Walker(HTMLParser):
@@ -315,15 +336,18 @@ class Walker(HTMLParser):
     def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
         """Record an opening tag and its attributes for later rule checks."""
         parent: int = self._stack[-1] if self._stack else -1
-        line, _ = self.getpos()
+        line, column = self.getpos()
         elem: Element = Element(
             tag=tag,
             attrs={k: (v or "") for k, v in attrs},
             line=line,
             parent=parent,
+            column=column,
         )
         self.elements.append(elem)
-        # Void tags do not push onto the stack: they have no children.
+        # Void tags do not push onto the stack: they have no children. The
+        # whole list, because one left out adopts every sibling after it: a
+        # <wbr> before a real <a> hid that link from the Jakob check.
         if tag not in {
             "img",
             "br",
@@ -333,6 +357,12 @@ class Walker(HTMLParser):
             "link",
             "source",
             "area",
+            "base",
+            "col",
+            "embed",
+            "param",
+            "track",
+            "wbr",
         }:
             self._stack.append(len(self.elements) - 1)
 
@@ -361,13 +391,14 @@ class Walker(HTMLParser):
         # Self-closing form (``<input … />``): same as start but no push.
         """Record a self-closing tag (e.g. ``<img/>``, ``<input/>``)."""
         parent: int = self._stack[-1] if self._stack else -1
-        line, _ = self.getpos()
+        line, column = self.getpos()
         self.elements.append(
             Element(
                 tag=tag,
                 attrs={k: (v or "") for k, v in attrs},
                 line=line,
                 parent=parent,
+                column=column,
             )
         )
 
@@ -436,6 +467,30 @@ def _short(snippet: str, max_chars: int = 120) -> str:
 def _file_lines(path: Path) -> list[str]:
     """Read the file and return one entry per line (no trailing newline)."""
     return path.read_text(encoding="utf-8", errors="replace").splitlines()
+
+
+def _split_lines(text: str) -> list[str]:
+    """
+    Cut text into lines at ``\\n`` only, the way the HTML parser counts them.
+
+    ``str.splitlines`` also cuts at a form feed or a U+2028, so the two line
+    numberings disagreed after one, and ``--fix``, which joins the lines back
+    with ``\\n``, replaced that character with a line break.
+
+    Parameters
+    ----------
+    text : str
+        Text with ``\\n`` line endings.
+
+    Returns
+    -------
+    list of str
+        One entry per line, without a final empty entry for a trailing newline.
+    """
+    lines: list[str] = text.split("\n")
+    if lines[-1] == "":
+        lines.pop()
+    return lines
 
 
 # ── The law checks ─────────────────────────────────────────────────────────
@@ -680,6 +735,12 @@ def check_miller(path: str, lines: list[str]) -> list[Finding]:
     out: list[Finding] = []
     in_script: bool = False
     in_style: bool = False
+    # A comment is not visible text either. One on a single line goes with the
+    # tags below; one over several lines has to be blanked first, keeping its
+    # line breaks so that the line numbers stay true.
+    lines = _split_lines(
+        RE_COMMENT.sub(lambda c: "\n" * c.group(0).count("\n"), "\n".join(lines) + "\n")
+    )
     for n, raw in enumerate(lines, start=1):
         low: str = raw.lower()
         if "<script" in low:
@@ -896,6 +957,7 @@ def check_fitts(walker: Walker, path: str) -> list[Finding]:
                     f"<{elem.tag}> has no min-h-11 / h-11 (44 px). "
                     f"Confirm the hit area is at least 44×44."
                 ),
+                column=elem.column,
             )
         )
     return out
@@ -931,6 +993,7 @@ def check_aesthetic_usability(walker: Walker, path: str) -> list[Finding]:
                 message=(
                     f"<{elem.tag}> has no focus-visible:ring-* class. Add the house focus token."
                 ),
+                column=elem.column,
             )
         )
     return out
@@ -953,7 +1016,9 @@ def check_selective_attention(walker: Walker, path: str) -> list[Finding]:
         if not RE_TW_STATUS_COLOUR.search(flat):
             continue
         text: str = "".join(elem.text_chunks).strip().lower()
-        if any(w in text for w in STATUS_WORDS):
+        # Whole words: as substrings, the "ok" of "Look" and "Booked" passed
+        # for a status word.
+        if STATUS_WORDS.intersection(re.findall(r"[^\W\d_]+", text)):
             continue
         # Has an icon child? Then there is a second channel.
         has_icon: bool = any(
@@ -1017,8 +1082,10 @@ def check_tesler(path: str, lines: list[str]) -> list[Finding]:
         for m in RE_TIME_STAMP.finditer(raw):
             start: int = max(0, m.start() - 40)
             end: int = min(len(raw), m.end() + 40)
-            window: str = raw[start:end]
-            if RE_TZ_TOKEN.search(window):
+            # On the whole line, bounded, rather than on a slice: the offset
+            # alternatives look at the character before the sign, and a slice
+            # can start right on the "-4" of "px-4".
+            if RE_TZ_TOKEN.search(raw, start, end):
                 continue
             if RE_DURATION_CONTEXT.search(_duration_context(raw, m.start(), m.end())):
                 continue
@@ -1076,9 +1143,21 @@ AU_FIX_TOKENS: tuple[str, ...] = (
 NBSP: str = " "
 
 
-def _insert_class_tokens(line: str, tokens: list[str]) -> tuple[str, bool]:
+#: A ``class`` attribute with its quote captured; ``data-class`` is not one.
+_RE_CLASS_ATTR: re.Pattern[str] = re.compile(r"""(?<![\w-])class=(["'])((?:(?!\1).)*)\1""")
+
+#: An opening tag from its ``<``: quoted values may hold a ``>``, and the tag
+#: may run past the end of the line (hence the optional ``>``).
+_RE_OPENING_TAG: re.Pattern[str] = re.compile(r"""<[a-zA-Z](?:"[^"]*"|'[^']*'|[^'">])*>?""")
+
+
+def _insert_class_tokens(line: str, tokens: list[str], column: int = -1) -> tuple[str, bool]:
     """
-    Insert one or more class tokens into the first ``class="…"`` on a line.
+    Insert one or more class tokens into a ``class="…"`` on a line.
+
+    With ``column``, into the ``class`` of the tag that opens there and
+    nowhere else: on ``<div class="card"><button class="p-2">``, the first
+    ``class`` on the line is the card's, and the finding is the button's.
 
     Idempotent: tokens already present are not duplicated. Returns the
     new line and ``True`` iff anything actually changed.
@@ -1089,6 +1168,9 @@ def _insert_class_tokens(line: str, tokens: list[str]) -> tuple[str, bool]:
         Source line containing a ``class="…"`` attribute.
     tokens : list of str
         Tokens to ensure are present, in declaration order.
+    column : int, optional
+        Offset of the element's ``<``. ``-1``, the default, takes the first
+        ``class`` on the line.
 
     Returns
     -------
@@ -1100,7 +1182,14 @@ def _insert_class_tokens(line: str, tokens: list[str]) -> tuple[str, bool]:
     # Match either single- or double-quoted attribute values. Capture
     # the quote so the rewrite can reuse it (single-quoted ``class``
     # attributes are valid HTML and appear in sprezzature-ui examples).
-    m = re.search(r"""class=(["'])((?:(?!\1).)*)\1""", line)
+    lo: int = 0
+    hi: int = len(line)
+    if column >= 0:
+        tag = _RE_OPENING_TAG.match(line, column)
+        if tag is None:
+            return line, False
+        lo, hi = tag.span()
+    m = _RE_CLASS_ATTR.search(line, lo, hi)
     if not m:
         return line, False
     existing: list[str] = m.group(2).split()
@@ -1119,7 +1208,7 @@ def _fix_fitts(lines: list[str], finding: Finding) -> bool:
     idx: int = finding.line - 1
     if not (0 <= idx < len(lines)):
         return False
-    new_line, mutated = _insert_class_tokens(lines[idx], [FITTS_FIX_TOKEN])
+    new_line, mutated = _insert_class_tokens(lines[idx], [FITTS_FIX_TOKEN], finding.column)
     if mutated:
         lines[idx] = new_line
     return mutated
@@ -1130,7 +1219,7 @@ def _fix_aesthetic_usability(lines: list[str], finding: Finding) -> bool:
     idx: int = finding.line - 1
     if not (0 <= idx < len(lines)):
         return False
-    new_line, mutated = _insert_class_tokens(lines[idx], list(AU_FIX_TOKENS))
+    new_line, mutated = _insert_class_tokens(lines[idx], list(AU_FIX_TOKENS), finding.column)
     if mutated:
         lines[idx] = new_line
     return mutated
@@ -1274,6 +1363,50 @@ LAW_FIXERS: dict[str, Callable[..., Any]] = {
 MAX_FIX_ITERATIONS: int = 5
 
 
+def _fixer_for(finding: Finding) -> Callable[..., Any] | None:
+    """
+    The fixer for a finding, or ``None`` when there is nothing to write.
+
+    An ``info`` finding is a page without Tailwind saying so once. It carries
+    a law that has a fixer, and it used to reach it: the fixer wrote Tailwind
+    classes on line 1, which made the page look like a Tailwind page to the
+    re-audit, and the next pass then wrote them on every control.
+
+    Parameters
+    ----------
+    finding : Finding
+        The finding to repair.
+
+    Returns
+    -------
+    callable or None
+        The registered fixer, or ``None``.
+    """
+    return None if finding.severity == "info" else LAW_FIXERS.get(finding.law)
+
+
+def _in_fix_order(findings: list[Finding]) -> list[Finding]:
+    """
+    Order one pass's findings so that a recorded column stays true.
+
+    Findings located by a column are applied last, and from the right of each
+    line to the left, since inserting into a tag moves every tag after it.
+
+    Parameters
+    ----------
+    findings : list of Finding
+        The findings of one audit pass.
+
+    Returns
+    -------
+    list of Finding
+        The same findings, in the order to apply them.
+    """
+    return sorted(
+        findings, key=lambda f: (f.column >= 0, f.line if f.column >= 0 else 0, -f.column)
+    )
+
+
 def fix_file(
     path: Path, laws: set[str], *, dry_run: bool = False
 ) -> tuple[int, int, list[Finding]]:
@@ -1325,7 +1458,7 @@ def fix_file(
     newline: str = "\r\n" if "\r\n" in original else "\n"
     # The checks see what ``audit_file`` sees: universal newlines.
     raw: str = original.replace("\r\n", "\n")
-    bare_lines: list[str] = raw.splitlines()
+    bare_lines: list[str] = _split_lines(raw)
     label: str = str(path)
 
     def current_text() -> str:
@@ -1340,7 +1473,7 @@ def fix_file(
     if dry_run:
         findings: list[Finding] = audit_file(path, laws)
         for f in findings:
-            fixer = LAW_FIXERS.get(f.law)
+            fixer = _fixer_for(f)
             if fixer is None:
                 skipped += 1
                 continue
@@ -1364,10 +1497,16 @@ def fix_file(
         findings = audit_html(current_text(), laws, label)
         round_applied: int = 0
         round_skipped: int = 0
-        for f in findings:
-            fixer = LAW_FIXERS.get(f.law)
+        # Lines a fixer that does not go by column has just rewritten.
+        shifted: set[int] = set()
+        for f in _in_fix_order(findings):
+            fixer = _fixer_for(f)
             if fixer is None:
                 round_skipped += 1
+                continue
+            # The tags on this line have moved since the audit: the next pass
+            # audits it again and has their true columns.
+            if f.column >= 0 and f.line in shifted:
                 continue
             # A registered fixer can still decline for this specific
             # instance (e.g. aesthetic-usability/Fitts on an element with
@@ -1376,6 +1515,8 @@ def fix_file(
             # needs a human, as it silently did before.
             if fixer(bare_lines, f):
                 round_applied += 1
+                if f.column < 0:
+                    shifted.add(f.line)
             else:
                 round_skipped += 1
         applied += round_applied
@@ -1434,7 +1575,7 @@ def audit_html(
     walker: Walker = Walker()
     walker.feed(raw)
     walker.close()
-    lines: list[str] = raw.splitlines()
+    lines: list[str] = _split_lines(raw)
     findings: list[Finding] = []
     for law, (walker_fn, text_fn) in LAW_REGISTRY.items():
         if law not in laws:

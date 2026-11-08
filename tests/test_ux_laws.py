@@ -5,6 +5,10 @@ import json
 import sys
 from pathlib import Path
 
+import pytest
+
+from sprezzature_ux_laws import LAW_REGISTRY, audit_html, fix_file
+
 # The script uses sys.path insertion at import time; mirror that for tests.
 SCRIPTS = Path(__file__).resolve().parent.parent / "scripts"
 sys.path.insert(0, str(SCRIPTS))
@@ -397,7 +401,7 @@ def test_fix_mode_applies_fitts_and_au_and_is_sane(tmp_path: Path) -> None:
     page = tmp_path / "fixme.html"
     page.write_text(
         '<!DOCTYPE html><html><body>'
-        '<button class="px-4">Go</button>'
+        '<button class="px-4 bg-blue-600">Go</button>'
         "</body></html>",
         encoding="utf-8",
     )
@@ -426,7 +430,7 @@ def test_fix_mode_is_idempotent(tmp_path: Path) -> None:
     page = tmp_path / "fixme_twice.html"
     page.write_text(
         '<!DOCTYPE html><html><body>'
-        '<button class="px-4">Go</button>'
+        '<button class="px-4 bg-blue-600">Go</button>'
         "</body></html>",
         encoding="utf-8",
     )
@@ -515,7 +519,7 @@ def test_fix_mode_dry_run_does_not_write(tmp_path: Path) -> None:
     from audit_laws_of_ux import fix_file
 
     page = tmp_path / "dry.html"
-    original = '<!DOCTYPE html><html><body><button class="px-4">Go</button></body></html>'
+    original = '<!DOCTYPE html><html><body><button class="px-4 bg-blue-600">Go</button></body></html>'
     page.write_text(original, encoding="utf-8")
     applied, skipped, remaining = fix_file(
         page, {"fitts", "aesthetic-usability"}, dry_run=True
@@ -801,3 +805,123 @@ def test_the_click_command_answers_short_version() -> None:
         result = CliRunner().invoke(main, [flag])
         assert result.exit_code == 0, result.output
         assert sprezzature_ux_laws.__version__ in result.output
+
+
+# ── --fix edits the element the finding is about ───────────────────────────
+
+_TW_LINE = '<p class="px-4 bg-blue-600"></p>\n'
+_FITTS = "min-h-11"
+
+
+def _fix(tmp_path: Path, html: str) -> tuple[int, int, int, str]:
+    """Run --fix on ``html``; return (applied, skipped, remaining, the file)."""
+    page = tmp_path / "page.html"
+    page.write_bytes(html.encode("utf-8"))
+    applied, skipped, remaining = fix_file(page, set(LAW_REGISTRY))
+    return applied, skipped, len(remaining), page.read_bytes().decode("utf-8")
+
+
+def test_fix_writes_on_the_flagged_element_not_the_first_class_of_the_line(
+    tmp_path: Path,
+) -> None:
+    """A card around a button: the classes go on the button, not on the card.
+
+    The fixers took the first ``class`` on the line. The card came back with
+    a hit-area class and a focus ring, and the button was still reported.
+    """
+    html = '<div class="px-4 bg-blue-600"><button class="p-2">Go</button></div>\n'
+    applied, _, remaining, written = _fix(tmp_path, html)
+    assert written.startswith('<div class="px-4 bg-blue-600"><button class="p-2 min-h-11 ')
+    assert (applied, remaining) == (2, 0)
+
+
+def test_fix_repairs_every_control_on_one_line(tmp_path: Path) -> None:
+    """The second button of a line used to stay unrepaired, as ``unfixable``."""
+    html = _TW_LINE + '<button class="p-2">a</button><button class="p-3">b</button>\n'
+    applied, skipped, remaining, written = _fix(tmp_path, html)
+    assert (applied, skipped, remaining) == (4, 0, 0)
+    assert written.count(_FITTS) == 2
+    assert written.count("focus-visible:ring-2") == 2
+
+
+def test_fix_gives_a_classless_element_nothing_of_its_neighbour(tmp_path: Path) -> None:
+    """An element with no ``class`` is unfixable: the next tag's is not its own."""
+    html = _TW_LINE + '<button>a</button><span class="z">b</span>\n'
+    assert _fix(tmp_path, html) == (0, 2, 2, html)
+
+
+def test_fix_copes_with_a_jakob_rewrite_on_the_same_line(tmp_path: Path) -> None:
+    """Jakob moves the tags after it, so their columns are read again next pass."""
+    html = _TW_LINE + '<div onclick="a()" class="x">A</div><button class="p-2">B</button>\n'
+    applied, skipped, remaining, written = _fix(tmp_path, html)
+    assert written.count("<button") == 2
+    assert "<div" not in written
+    assert written.count(_FITTS) == 2
+    assert (skipped, remaining) == (0, 0)
+    assert applied == 5
+
+
+@pytest.mark.parametrize("dry_run", [False, True])
+def test_fix_writes_no_tailwind_on_a_page_without_it(tmp_path: Path, dry_run: bool) -> None:
+    """The one ``info`` of a non-Tailwind page is not something to repair.
+
+    It went to the fixer, which put Tailwind classes on line 1; the re-audit
+    then took the page for a Tailwind page and the rest of it followed.
+    """
+    html = '<html class="site">\n<button class="go">a</button>\n</html>\n'
+    page = tmp_path / "page.html"
+    page.write_text(html, encoding="utf-8")
+    applied, _, remaining = fix_file(page, set(LAW_REGISTRY), dry_run=dry_run)
+    assert applied == 0
+    assert page.read_text(encoding="utf-8") == html
+    assert [f.severity for f in remaining] == ["info", "info"]
+
+
+@pytest.mark.parametrize("char", [" ", "\x0c"])
+def test_fix_keeps_a_character_that_is_not_a_line_break_for_html(tmp_path: Path, char: str) -> None:
+    """``splitlines`` cuts at these, and the rewrite turned them into newlines."""
+    html = f'<p class="px-4 bg-blue-600">a{char}b</p>\n<button class="p-2">c</button>\n'
+    assert char in _fix(tmp_path, html)[3]
+
+
+# ── A check that was quieter or louder than it says ────────────────────────
+
+
+@pytest.mark.parametrize(
+    "html",
+    [
+        '<span class="px-4 text-gray-500">14:30</span>',
+        "<span>2026-11-08 14:30</span>",
+        "<p>Call +33 1 23 at 14:30</p>",
+    ],
+)
+def test_tesler_is_not_silenced_by_what_only_resembles_an_offset(html: str) -> None:
+    """``px-4`` is a sign and a digit, and it hid the time on most Tailwind pages."""
+    assert [f for f in audit_html(html) if f.law == "tesler"]
+
+
+@pytest.mark.parametrize(
+    "html",
+    ["<span>14:30+02:00</span>", "<span>14:30 +02:00</span>", "<span>14:30 -0500</span>"],
+)
+def test_tesler_still_accepts_a_real_offset(html: str) -> None:
+    """A tightened offset must not lose the forms it is there for."""
+    assert not [f for f in audit_html(html) if f.law == "tesler"]
+
+
+def test_selective_attention_reads_whole_words() -> None:
+    """The ``ok`` of ``Look`` is not a status word."""
+    colour = '<span class="text-red-600">{}</span>'
+    assert audit_html(colour.format("Look"), {"selective-attention"})
+    assert not audit_html(colour.format("3 warnings"), {"selective-attention"})
+
+
+def test_a_void_element_does_not_adopt_its_siblings() -> None:
+    """A ``<wbr>`` before a real link hid that link from the Jakob check."""
+    assert not audit_html('<div onclick="f()">a<wbr><a href="/x">b</a></div>', {"jakob"})
+
+
+def test_miller_skips_a_comment_over_several_lines() -> None:
+    """A comment is not visible text, and the line numbers after it stay true."""
+    findings = audit_html("<!--\n  id 123456789\n-->\n<p>987654321</p>\n", {"miller"})
+    assert [(f.line, f.message.split("'")[1]) for f in findings] == [(4, "987654321")]

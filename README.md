@@ -60,8 +60,9 @@ Interactive elements are `<button>`, `<a>`, `<input>`, `<select>`, `<textarea>` 
   position has no timezone.
 
 **Fitts and aesthetic-usability read Tailwind's scale**, so they first ask whether the
-document uses Tailwind CSS at all: at least two distinct Tailwind-only utilities, such
-as `px-4` and `bg-blue-600`. When it does not, each of the two checks returns one
+document uses Tailwind CSS at all: Tailwind-only utilities of at least two different
+kinds (spacing, colour, a responsive or state prefix, gap, sizing, rounding), such as
+`px-4` and `bg-blue-600`. `px-4` and `py-2` are one kind. When it does not, each of the two checks returns one
 `info` finding for the whole document instead of one warning per element, and `--fix`
 writes no Tailwind classes into it.
 
@@ -121,8 +122,8 @@ sprezzature-ux-laws page.html --fix --dry-run
 
 Two installed commands take the same targets and flags and call the same handler:
 `sprezzature-ux-laws` (click) and `sprezzature-ux-laws-audit` (the per-tool script).
-From a clone, without installing, `python scripts/audit_laws_of_ux.py page.html` runs
-that handler too.
+From a clone, without installing the package, `python scripts/audit_laws_of_ux.py
+page.html` runs that handler too, provided click can be imported.
 
 | Flag | Effect |
 |---|---|
@@ -163,7 +164,8 @@ Four laws have a fixer. The other four (`hick`, `choice-overload`,
 The fixer re-audits and repeats, up to five passes, because rewriting a `<div>` into a
 `<button>` creates new Fitts and focus-ring findings. A second run on a repaired file
 applies zero edits. A fixer only extends a `class` attribute that already exists: an
-element without one is counted as unfixable and stays among the remaining findings.
+element without one, or whose `class` is not on the line its tag opens, is counted as
+unfixable and stays among the remaining findings.
 `--fix` writes the page only when a fixer changed something, and keeps its line endings
 (a CRLF file stays CRLF). It rewrites the page, so diff the result before committing it.
 

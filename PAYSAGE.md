@@ -16,7 +16,7 @@ suite sprezzature
 ├── sprezzature-ui            (écrit l'écran que celle-ci audite, et les jetons de style)
 ├── sprezzature-accessibility (l'axe voisin : 20 règles, même pari sans navigateur)
 ├── sprezzature-colors        (contraste et déficience de la vision des couleurs)
-├── sprezzature-figures       (167 types de graphiques, et la boucle visuelle)
+├── sprezzature-figures       (168 types de graphiques, et la boucle visuelle)
 ├── sprezzature-publish       (transforme les pages auditées en site)
 └── sprezzature-video         (vérifie ce qu'un film affirme sur tout ce qui précède)
 ```

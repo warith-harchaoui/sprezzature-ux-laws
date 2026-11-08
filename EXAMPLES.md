@@ -14,9 +14,9 @@ Line 2 is a `<button>` with no hit-area class (Fitts) and no focus
 ring (Aesthetic-Usability). Line 3 is a clickable `<div>` standing in
 for a real `<button>` (Jakob).
 
-`px-4` and `bg-blue-600` are two distinct Tailwind utilities, which is
-what makes the Fitts and Aesthetic-Usability checks read the page. With
-fewer than two, each of those checks reports a single `info` finding on
+`px-4` and `bg-blue-600` are Tailwind utilities of two different kinds,
+which is what makes the Fitts and Aesthetic-Usability checks read the
+page. With fewer than two kinds, each of those checks reports a single `info` finding on
 line 1 ("no Tailwind utilities in this document…") instead.
 
 ## Audit a single file
@@ -142,7 +142,8 @@ split), `jakob` (rewrites the clickable `<div>` or `<span>` itself, never a
 wrapper around it, to a real `<button>`, removing `role="button"`, when it
 opens and closes on one line and holds no real control). A fixer can only add
 tokens to a `class="…"` attribute that already exists on the element;
-an element with no `class` attribute at all is reported but left
+an element with no `class` attribute at all, or with its `class` on
+another line than the one its tag opens on, is reported but left
 untouched, and shows up again as `remaining` after the fix pass.
 
 Laws without a fixer (they need a design decision, not a text edit):

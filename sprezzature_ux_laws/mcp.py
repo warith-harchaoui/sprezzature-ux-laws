@@ -123,7 +123,17 @@ else:
         from sprezzature_ux_laws_scripts._click import run_command, sprezzature_command
 
         default_host = os.environ.get("SPREZZATURE_UX_LAWS_HOST", "127.0.0.1")
-        default_port = int(os.environ.get("SPREZZATURE_UX_LAWS_PORT", "8000"))
+        raw_port = os.environ.get("SPREZZATURE_UX_LAWS_PORT", "8000")
+        # A variable set wrong is a usage error, and it was a traceback, even
+        # on --help, since the default is computed before anything parses.
+        try:
+            default_port = int(raw_port)
+        except ValueError:
+            print(
+                f"sprezzature-ux-laws-mcp: SPREZZATURE_UX_LAWS_PORT is not a port: {raw_port!r}",
+                file=sys.stderr,
+            )
+            raise SystemExit(2) from None
 
         @sprezzature_command(
             "sprezzature-ux-laws-mcp",

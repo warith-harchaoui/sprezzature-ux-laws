@@ -67,8 +67,10 @@ Les éléments interactifs sont `<button>`, `<a>`, `<input>`, `<select>`, `<text
   position de lecture n'a pas de fuseau horaire.
 
 **Fitts et esthétique-utilisabilité lisent l'échelle de Tailwind**, donc elles
-demandent d'abord si le document emploie Tailwind CSS : au moins deux utilitaires
-propres à Tailwind et distincts, comme `px-4` et `bg-blue-600`. Sinon, chacune des deux
+demandent d'abord si le document emploie Tailwind CSS : des utilitaires propres à
+Tailwind d'au moins deux sortes différentes (espacement, couleur, préfixe responsive ou
+d'état, écart, dimension, arrondi), comme `px-4` et `bg-blue-600`. `px-4` et `py-2` sont
+une seule sorte. Sinon, chacune des deux
 rend un seul constat `info` pour tout le document au lieu d'un avertissement par
 élément, et `--fix` n'y écrit aucune classe Tailwind.
 
@@ -132,9 +134,8 @@ sprezzature-ux-laws page.html --fix --dry-run
 
 Deux commandes installées prennent les mêmes cibles et les mêmes drapeaux, et
 appellent le même gestionnaire : `sprezzature-ux-laws` (click) et
-`sprezzature-ux-laws-audit` (le script propre à l'outil). Depuis un clone, sans rien
-installer, `python scripts/audit_laws_of_ux.py page.html` appelle ce même
-gestionnaire.
+`sprezzature-ux-laws-audit` (le script propre à l'outil). Depuis un clone, sans installer le paquet, `python scripts/audit_laws_of_ux.py page.html`
+appelle ce même gestionnaire, pourvu que click soit importable.
 
 | Drapeau | Effet |
 |---|---|
@@ -176,8 +177,8 @@ retouche de texte.
 Le correcteur réaudite et recommence, jusqu'à cinq passes, parce que réécrire un
 `<div>` en `<button>` crée de nouveaux constats Fitts et anneau de focus. Une seconde
 exécution sur un fichier réparé n'applique aucune retouche. Un correcteur ne fait
-qu'étendre un attribut `class` existant : un élément qui n'en a pas est compté comme
-non corrigeable et reste parmi les constats restants. `--fix` n'écrit la page que si un
+qu'étendre un attribut `class` existant : un élément qui n'en a pas, ou dont le `class`
+n'est pas sur la ligne où s'ouvre sa balise, est compté comme non corrigeable et reste parmi les constats restants. `--fix` n'écrit la page que si un
 correcteur a changé quelque chose, et garde ses fins de ligne (un fichier CRLF reste
 CRLF). Il réécrit la page : relisez le diff avant de le committer.
 

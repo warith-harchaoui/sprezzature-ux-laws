@@ -137,3 +137,16 @@ def test_every_tool_says_when_to_call_it() -> None:
             f"{route.operation_id}: description is {len(description)} chars. Say when "
             f"to call it, not just what it is."
         )
+
+
+def test_a_bad_port_variable_is_a_usage_error_not_a_traceback(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    """The default is computed before anything parses, so even --help raised."""
+    from sprezzature_ux_laws.mcp import main
+
+    monkeypatch.setenv("SPREZZATURE_UX_LAWS_PORT", "abc")
+    with pytest.raises(SystemExit) as exc:
+        main(["--help"])
+    assert exc.value.code == 2
+    assert "SPREZZATURE_UX_LAWS_PORT" in capsys.readouterr().err

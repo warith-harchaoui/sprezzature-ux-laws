@@ -16,7 +16,7 @@ sprezzature suite
 ├── sprezzature-ui            (writes the screen this one audits, and the design tokens)
 ├── sprezzature-accessibility (the neighbouring axis: 20 rules, same zero-browser trade)
 ├── sprezzature-colors        (contrast and colour-vision deficiency)
-├── sprezzature-figures       (167 chart types, and the vision loop)
+├── sprezzature-figures       (168 chart types, and the vision loop)
 ├── sprezzature-publish       (turns the audited pages into a site)
 └── sprezzature-video         (checks what a film claims about all of the above)
 ```
