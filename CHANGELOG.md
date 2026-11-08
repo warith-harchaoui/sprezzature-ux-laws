@@ -4,6 +4,49 @@ All notable changes to sprezzature-ux-laws are documented here.
 
 ## [Unreleased]
 
+## [1.4.3] — 2026-11-08
+
+### Fixed
+
+- **`--fix` writes no Tailwind class on a page without Tailwind.** The single
+  `info` such a page gets went to the fixer, which added the classes on line 1;
+  the re-audit then read the page as a Tailwind page, and the next pass wrote
+  them on every control. The README had always said it did not.
+- **The Fitts and Aesthetic-Usability fixers write on the element the finding
+  is about.** They extended the first `class` on the line: a card around a
+  button got the hit-area class and the focus ring, the button stayed reported,
+  the second control of a line was counted unfixable, and an element without a
+  `class` handed its tokens to its neighbour. A finding now records the column
+  of its tag.
+- **Tesler no longer takes `px-4` for a timezone.** Any sign followed by a digit
+  counted as an offset within the 40-character window, so a class name, a date
+  or a phone number silenced the check on most Tailwind pages. An offset now
+  has to be glued to the minutes or stand alone, and be at most 14 hours.
+- **Selective attention reads whole words.** The `ok` of `Look` passed for a
+  status word. `warnings`, `successful` and `failing` were added to the list.
+- **Miller skips an HTML comment over several lines**, which is not visible text.
+- **`<wbr>` and the other void elements not yet listed** (`base`, `col`, `embed`,
+  `param`, `track`) no longer adopt the siblings after them, which hid a real
+  link from the Jakob check.
+- **`--fix` keeps a form feed or a U+2028.** Lines were cut with `splitlines`
+  and joined with `\n`, which replaced those characters with a line break, and
+  the numbering disagreed with the HTML parser's.
+- **A non-numeric `SPREZZATURE_UX_LAWS_PORT`** is a usage error (exit `2`) on
+  `sprezzature-ux-laws-mcp`, not a traceback, even on `--help`.
+
+Eighteen regression cases in `tests/test_ux_laws.py` and `tests/test_api_mcp.py`,
+each failing without its fix. Three `--fix` tests used a page with a single
+kind of Tailwind utility and passed thanks to the first defect above: their
+fixture now has two kinds.
+
+### Docs
+
+- README, LISEZMOI, EXAMPLES.md: the Tailwind detection counts kinds of
+  utility, not utilities (`px-4` and `py-2` are one kind); a fixer also leaves
+  an element whose `class` is not on the line its tag opens; running the script
+  from a clone needs click.
+- LANDSCAPE.md and PAYSAGE.md: 168 chart types.
+
 ## [1.4.2] — 2026-11-05
 
 ### Fixed

@@ -19,7 +19,7 @@ Warith HARCHAOUI <warithmetics@deraison.ai>
 """
 from __future__ import annotations
 
-__version__ = "1.4.2"
+__version__ = "1.4.3"
 __author__ = "Warith HARCHAOUI"
 __email__ = "warithmetics@deraison.ai"
 __license__ = "BSD-3-Clause"
@@ -47,7 +47,7 @@ from sprezzature_ux_laws_scripts.audit_laws_of_ux import (  # noqa: E402
 
 #: Every law this package knows how to check, in the order the registry runs
 #: them. Exported because all four surfaces need the same list: the command
-#: line validates `--laws` against it, the HTTP API publishes it, and the MCP
+#: line validates `--only` against it, the HTTP API publishes it, and the MCP
 #: tool schema is derived from the API.
 LAWS: tuple[str, ...] = tuple(LAW_REGISTRY)
 
