@@ -150,3 +150,13 @@ def test_a_bad_port_variable_is_a_usage_error_not_a_traceback(
         main(["--help"])
     assert exc.value.code == 2
     assert "SPREZZATURE_UX_LAWS_PORT" in capsys.readouterr().err
+
+
+def test_the_mcp_server_announces_its_version_as_a_version() -> None:
+    """fastapi-mcp passes the description into the version slot."""
+    from sprezzature_ux_laws import __version__
+    from sprezzature_ux_laws.mcp import mcp
+
+    options = mcp.server.create_initialization_options()
+    assert options.server_version == __version__
+    assert options.instructions == mcp.description

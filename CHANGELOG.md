@@ -8,6 +8,9 @@ All notable changes to sprezzature-ux-laws are documented here.
 
 ### Fixed
 
+- **The MCP server announces its version as a version.** fastapi-mcp 0.4 passes
+  the description into `Server`'s version slot, so `serverInfo.version` was a
+  sentence. It is the package version now, and the description is `instructions`.
 - **`--fix` writes no Tailwind class on a page without Tailwind.** The single
   `info` such a page gets went to the fixer, which added the classes on line 1;
   the re-audit then read the page as a Tailwind page, and the next pass wrote
