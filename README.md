@@ -9,7 +9,7 @@
 
 A static **Laws-of-UX** auditor for HTML.
 
-The "Laws of UX" are named heuristics from psychology and human-computer-interaction
+The Laws of UX (user experience: how an interface feels to use, such as how long it takes to find the right button) are named heuristics from psychology and human-computer-interaction
 research, curated by Jon YABLONSKI at [lawsofux.com](https://lawsofux.com/). Hick's Law,
 for instance, says that the more choices a screen offers at once, the longer a person
 takes to pick one, so a navigation menu with forty links is measurably harder to use
@@ -60,7 +60,7 @@ Interactive elements are `<button>`, `<a>`, `<input>`, `<select>`, `<textarea>` 
   position has no timezone.
 
 **Fitts and aesthetic-usability read Tailwind's scale**, so they first ask whether the
-document uses Tailwind CSS at all: Tailwind-only utilities of at least two different
+document uses Tailwind CSS (Cascading Style Sheets, the rules that give a web page its colours, fonts and layout) at all: Tailwind-only utilities of at least two different
 kinds (spacing, colour, a responsive or state prefix, gap, sizing, rounding), such as
 `px-4` and `bg-blue-600`. `px-4` and `py-2` are one kind. When it does not, each of the two checks returns one
 `info` finding for the whole document instead of one warning per element, and `--fix`
@@ -96,8 +96,9 @@ desktop-only. Over-reporting sends somebody to look; under-reporting ships.
 pip install sprezzature-ux-laws
 ```
 
-One install gives every surface: the library, both commands, the HTTP API and the MCP
-server. The base dependencies are click (the command line), FastAPI, uvicorn,
+One install gives every surface: the library, both commands, the HTTP (HyperText Transfer Protocol, the protocol a browser uses to ask a server for a page, and a program to ask for data)
+API (application programming interface, addresses another program calls to use this tool with no person clicking) and the MCP
+(Model Context Protocol, the protocol through which AI agents call tools in English) server. The base dependencies are click (the command line), FastAPI, uvicorn,
 fastapi-mcp and mcp. There are no feature extras. The only extra, `[dev]`, is the test
 toolchain (pytest, ruff, mypy, httpx2).
 
@@ -127,7 +128,7 @@ page.html` runs that handler too, provided click can be imported.
 
 | Flag | Effect |
 |---|---|
-| `--json` | Print a JSON array, one object per finding (`law`, `severity`, `path`, `line`, `message`, `snippet`), instead of the text report. |
+| `--json` | Print a JSON (JavaScript Object Notation, a text format in which programs store data as named fields, such as "title": "Home") array, one object per finding (`law`, `severity`, `path`, `line`, `message`, `snippet`), instead of the text report. |
 | `--strict` | Any finding fails the run, whatever its severity. |
 | `--only LAWS` | Comma-separated slugs to run. Default: all eight. |
 | `--ignore LAWS` | Comma-separated slugs to skip. |
@@ -167,7 +168,7 @@ applies zero edits. A fixer only extends a `class` attribute that already exists
 element without one, or whose `class` is not on the line its tag opens, is counted as
 unfixable and stays among the remaining findings.
 `--fix` writes the page only when a fixer changed something, and keeps its line endings
-(a CRLF file stays CRLF). It rewrites the page, so diff the result before committing it.
+(a file ending its lines in carriage return + line feed, CRLF, as Windows Notepad writes them, stays CRLF). It rewrites the page, so diff the result before committing it.
 
 ## From Python
 
@@ -249,4 +250,4 @@ substitute for design review.
 
 ## License
 
-BSD-3-Clause © Warith HARCHAOUI. Part of the [sprezzature](https://sprezzature.ai/) toolkit.
+The three-clause Berkeley Software Distribution license, BSD-3-Clause, a permissive open-source license: anyone may reuse the code, even commercially, if they keep this notice: © Warith HARCHAOUI. Part of the [sprezzature](https://sprezzature.ai/) toolkit.

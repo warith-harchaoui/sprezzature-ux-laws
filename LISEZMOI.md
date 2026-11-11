@@ -7,8 +7,8 @@
 
 [![logo](https://raw.githubusercontent.com/warith-harchaoui/sprezzature-ux-laws/main/assets/logo.png)](https://sprezzature.ai/)
 
-Un auditeur statique des **Laws of UX** (lois de l'ergonomie
-cognitive) pour du HTML.
+Un auditeur statique des **Laws of UX (user experience, la manière dont une interface se vit à l'usage, comme le temps passé à trouver le bon bouton)**,
+les lois de l'ergonomie cognitive, pour du HTML.
 
 Les Laws of UX sont des heuristiques nommées, issues de la psychologie
 et de la recherche en interaction homme-machine, rassemblées par Jon
@@ -67,7 +67,7 @@ Les éléments interactifs sont `<button>`, `<a>`, `<input>`, `<select>`, `<text
   position de lecture n'a pas de fuseau horaire.
 
 **Fitts et esthétique-utilisabilité lisent l'échelle de Tailwind**, donc elles
-demandent d'abord si le document emploie Tailwind CSS : des utilitaires propres à
+demandent d'abord si le document emploie Tailwind CSS (Cascading Style Sheets, les règles qui donnent à une page web ses couleurs, ses polices et sa mise en page) : des utilitaires propres à
 Tailwind d'au moins deux sortes différentes (espacement, couleur, préfixe responsive ou
 d'état, écart, dimension, arrondi), comme `px-4` et `bg-blue-600`. `px-4` et `py-2` sont
 une seule sorte. Sinon, chacune des deux
@@ -107,7 +107,9 @@ pip install sprezzature-ux-laws
 ```
 
 Une seule installation donne toutes les surfaces : la bibliothèque, les deux
-commandes, l'API HTTP et le serveur MCP. Les dépendances de base sont click (la ligne
+commandes, l'API (application programming interface, des adresses qu'un autre programme appelle pour se servir de l'outil sans personne qui clique)
+HTTP (HyperText Transfer Protocol, le protocole par lequel un navigateur demande une page à un serveur, et un programme des données) et le serveur MCP
+(Model Context Protocol, le protocole par lequel les agents IA appellent des outils en français). Les dépendances de base sont click (la ligne
 de commande), FastAPI, uvicorn, fastapi-mcp et mcp. Il n'y a aucun extra de
 fonctionnalité. Le seul extra, `[dev]`, est l'outillage de test (pytest, ruff, mypy,
 httpx2).
@@ -139,7 +141,7 @@ appelle ce même gestionnaire, pourvu que click soit importable.
 
 | Drapeau | Effet |
 |---|---|
-| `--json` | Écrit un tableau JSON, un objet par constat (`law`, `severity`, `path`, `line`, `message`, `snippet`), au lieu du rapport texte. |
+| `--json` | Écrit un tableau JSON (JavaScript Object Notation, un format texte dans lequel les programmes rangent des données en champs nommés, comme « titre : Accueil »), un objet par constat (`law`, `severity`, `path`, `line`, `message`, `snippet`), au lieu du rapport texte. |
 | `--strict` | Tout constat fait échouer l'exécution, quelle que soit sa sévérité. |
 | `--only LOIS` | Identifiants à exécuter, séparés par des virgules. Par défaut : les huit. |
 | `--ignore LOIS` | Identifiants à écarter, séparés par des virgules. |
@@ -179,8 +181,8 @@ Le correcteur réaudite et recommence, jusqu'à cinq passes, parce que réécrir
 exécution sur un fichier réparé n'applique aucune retouche. Un correcteur ne fait
 qu'étendre un attribut `class` existant : un élément qui n'en a pas, ou dont le `class`
 n'est pas sur la ligne où s'ouvre sa balise, est compté comme non corrigeable et reste parmi les constats restants. `--fix` n'écrit la page que si un
-correcteur a changé quelque chose, et garde ses fins de ligne (un fichier CRLF reste
-CRLF). Il réécrit la page : relisez le diff avant de le committer.
+correcteur a changé quelque chose, et garde ses fins de ligne (un fichier dont les lignes finissent par retour chariot + saut de ligne,
+en anglais carriage return line feed, CRLF, comme les écrit le Bloc-notes de Windows, reste CRLF). Il réécrit la page : relisez le diff avant de le committer.
 
 ## Depuis Python
 
@@ -264,5 +266,5 @@ un verrou rapide, pas un substitut à une revue de design.
 
 ## Licence
 
-BSD-3-Clause © Warith HARCHAOUI. Fait partie de la boîte à outils
+La licence Berkeley Software Distribution à trois clauses, BSD-3-Clause, une licence libre permissive : chacun peut réutiliser le code, même commercialement, à condition de garder cette mention : © Warith HARCHAOUI. Fait partie de la boîte à outils
 [sprezzature](https://sprezzature.ai/).
