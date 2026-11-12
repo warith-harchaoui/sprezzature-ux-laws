@@ -27,7 +27,7 @@ metadata:
   source: https://lawsofux.com/
 ---
 
-> This skill ships inside the package [`sprezzature-ux-laws`](https://github.com/warith-harchaoui/sprezzature-ux-laws), at `sprezzature_ux_laws/skill/`, beside the deterministic tools it calls (`sprezzature-ux-laws …`). `sprezzature-ux-laws-skill` reports whether the copy an agent reads is in step with the installed package; `sprezzature-ux-laws-skill --install` copies it into `~/.claude/skills` (`--agent opencode` for `~/.opencode/skills`).
+> This skill ships inside the package [`sprezzature-ux-laws`](https://github.com/warith-harchaoui/sprezzature-ux-laws), at `sprezzature_ux_laws/skill/`, beside the deterministic tools it calls, invoked as `sprezzature-ux-laws …`. `sprezzature-ux-laws-skill` reports whether the copy an agent reads is in step with the installed package; `sprezzature-ux-laws-skill --install` copies it into `~/.claude/skills` (`--agent opencode` for `~/.opencode/skills`).
 
 # sprezzature-ux-laws — make and audit by the Laws of UX (user experience, how using a product feels: quick and clear, or slow and confusing)
 
