@@ -4,6 +4,8 @@ All notable changes to sprezzature-ux-laws are documented here.
 
 ## [Unreleased]
 
+## [1.5.0] — 2026-11-12
+
 ### Added
 
 - **The skill ships inside the package.** `sprezzature_ux_laws/skill/` holds the
