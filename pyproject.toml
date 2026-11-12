@@ -52,6 +52,7 @@ dependencies = [
 # resolve a mypy a major apart or a TestClient that does not import.
 dev = ["pytest>=8.0", "ruff", "mypy>=1.11,<3", "httpx2>=2.0.0"]
 [project.scripts]
+sprezzature-ux-laws-skill = "sprezzature_ux_laws._skill:main"
 # The auditor is this package's reason to exist and it had no console script:
 # the README told readers to run `python scripts/audit_laws_of_ux.py`, a path
 # that exists in a clone and not in a wheel, and the parser's own --help
@@ -94,3 +95,9 @@ testpaths = ["tests"]
 # carries it -- scripts/test_the_suite_runs_tests_the_same_way.py in the hub
 # checks that it still does.
 addopts = "-ra --strict-markers"
+
+[tool.setuptools.package-data]
+# The skill an agent reads ships inside the package, so `pip install`
+# carries all five surfaces; `sprezzature-ux-laws-skill --install` puts it
+# where Claude Code or OpenCode looks.
+"sprezzature_ux_laws" = ["skill/**/*"]

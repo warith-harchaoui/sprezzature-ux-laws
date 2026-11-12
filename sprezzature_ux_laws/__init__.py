@@ -51,7 +51,10 @@ from sprezzature_ux_laws_scripts.audit_laws_of_ux import (  # noqa: E402
 #: tool schema is derived from the API.
 LAWS: tuple[str, ...] = tuple(LAW_REGISTRY)
 
+from sprezzature_ux_laws._skill import skill_path  # noqa: E402
+
 __all__ = [
+    "skill_path",
     "FITTS_FIX_TOKEN",
     "LAWS",
     "LAW_REGISTRY",
