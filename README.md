@@ -96,9 +96,13 @@ desktop-only. Over-reporting sends somebody to look; under-reporting ships.
 pip install sprezzature-ux-laws
 ```
 
-One install gives every surface: the library, both commands, the HTTP (HyperText Transfer Protocol, the protocol a browser uses to ask a server for a page, and a program to ask for data)
-API (application programming interface, addresses another program calls to use this tool with no person clicking) and the MCP
-(Model Context Protocol, the protocol through which AI agents call tools in English) server. The base dependencies are click (the command line), FastAPI, uvicorn,
+One install gives all five surfaces: the library, the command line, the HTTP (HyperText Transfer Protocol, the protocol a browser uses to ask a server for a page, and a program to ask for data)
+API (application programming interface, addresses another program calls to use this tool with no person clicking), the MCP
+(Model Context Protocol, the protocol through which AI agents call tools in English) server, and the agent skill. It
+installs four commands: `sprezzature-ux-laws` and `sprezzature-ux-laws-audit` (the auditor),
+`sprezzature-ux-laws-mcp` (the server) and `sprezzature-ux-laws-skill` (the skill). The
+`Dockerfile` and `docker-compose.yml` that serve the API in a container live in the
+repository, not in the package. The base dependencies are click (the command line), FastAPI, uvicorn,
 fastapi-mcp and mcp. There are no feature extras. The only extra, `[dev]`, is the test
 toolchain (pytest, ruff, mypy, httpx2).
 
@@ -185,9 +189,10 @@ applied, unfixable, remaining = ux.fix_file(Path("page.html"), laws=set(ux.LAWS)
 ```
 
 The package exports `audit_html`, `audit_file`, `fix_file`, `Finding`, `Walker`,
-`Element`, `LAW_REGISTRY`, `LAWS` and `FITTS_FIX_TOKEN`. `ux.LAWS` is the tuple of the
-eight slugs, in the order the checks run: the command line validates `--only` against
-the same registry, and the HTTP API publishes it.
+`Element`, `LAW_REGISTRY`, `LAWS`, `FITTS_FIX_TOKEN` and `skill_path`. `ux.LAWS` is the
+tuple of the eight slugs, in the order the checks run: the command line validates
+`--only` against the same registry, and the HTTP API publishes it. `ux.skill_path()`
+returns the folder of the agent skill the package ships (see below).
 
 ## HTTP API
 
@@ -230,15 +235,36 @@ sprezzature-ux-laws-mcp --host 0.0.0.0 --port 9000
 ```
 
 `--host` and `--port` default to `SPREZZATURE_UX_LAWS_HOST` and
-`SPREZZATURE_UX_LAWS_PORT` when those are set. `python -m sprezzature_ux_laws.mcp` is
+`SPREZZATURE_UX_LAWS_PORT` when those are set; a port that is not a number is a usage
+error (exit `2`). `-V` prints the version. `python -m sprezzature_ux_laws.mcp` is
 equivalent.
 
 ## Agent skill
 
-The skill that tells an agent when to apply these laws, `sprezzature-ux-laws`, ships
-from the [sprezzature](https://github.com/warith-harchaoui/sprezzature) hub. The routing
-rules and the tool table for agents are in
+The fifth surface is the skill: the folder an agent such as Claude Code or OpenCode reads
+to know when to apply these laws and which command to run. It ships inside the package,
+at `sprezzature_ux_laws/skill/`: a `SKILL.md`, plus `references/laws-of-ux.md` (the
+thirty laws, with sources) and `references/triggers.md` (the trigger catalogue). The
+agent reads its own copy, not the one pip installed, so a command keeps the two in step.
+
+```bash
+sprezzature-ux-laws-skill                             # is the installed copy in step?
+sprezzature-ux-laws-skill --install                   # copy it into ~/.claude/skills
+sprezzature-ux-laws-skill --install --agent opencode  # into ~/.opencode/skills instead
+sprezzature-ux-laws-skill --path                      # where pip put it
+```
+
+Without `--install` the command only reports which files differ, and exits `0` either
+way (`1` only when the build ships no skill). `--install` first moves an older copy aside,
+to `skills-superseded/` beside the skills folder: a folder left inside it would itself be
+read as a skill. From Python, `sprezzature_ux_laws.skill_path()` returns the shipped
+folder. `sprezzature-ux-laws` is a single command, not a group, so there is no
+`sprezzature-ux-laws skill`.
+
+The routing rules and the tool table for agents are in
 [`TRIGGERS.md`](https://github.com/warith-harchaoui/sprezzature-ux-laws/blob/main/TRIGGERS.md).
+The [sprezzature](https://github.com/warith-harchaoui/sprezzature) hub gathers the
+skills of every brick of the suite.
 
 ## Honest scope
 

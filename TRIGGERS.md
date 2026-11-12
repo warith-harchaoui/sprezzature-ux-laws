@@ -1,9 +1,11 @@
 # Triggers
 
-When to audit an interface against the Laws of UX, and what to call.
+When to audit an interface against the Laws of UX (user experience: how an interface
+feels to use, such as how long it takes to find the right button), and what to call.
 
-This file is written for an agent: a Claude Code or OpenCode skill, a Model Context
-Protocol (MCP) host, anything choosing a tool on someone's behalf. Humans are welcome,
+This file is written for an agent: a Claude Code or OpenCode skill, an MCP (Model Context
+Protocol, the protocol through which AI agents call tools in English) host, anything
+choosing a tool on someone's behalf. Humans are welcome,
 but the routing rules below are the point.
 
 ---
@@ -34,12 +36,13 @@ lint the markup.
 | The request is about | Package | Tool |
 |---|---|---|
 | choices, columns, digit runs, clickable divs, hit area, focus ring, colour-only status, timezone | sprezzature-ux-laws | `audit_interface` |
-| alt text, labels, heading order, ARIA, language attribute, WCAG rules | sprezzature-accessibility | `lint_html` |
+| alt text, labels, heading order, ARIA (Accessible Rich Internet Applications, the HTML attributes that tell a screen reader what an element is), language attribute, WCAG (Web Content Accessibility Guidelines, the international rules a web page must follow to be usable by people with disabilities) rules | sprezzature-accessibility | `lint_html` |
 | contrast ratio, colour-vision deficiency, palette | sprezzature-colors | `check_contrast`, `simulate_color_blindness` |
 | response time, the Doherty threshold, real layout or real focus behaviour | none here | a browser tool such as Lighthouse |
 | the other 22 laws of lawsofux.com (Peak-End, Von Restorff, Goal-Gradient, Postel…) | none: vocabulary only | read `references/laws-of-ux.md` |
 
-A page can pass one and fail the others. When someone asks a broad "review my UI", run
+A page can pass one and fail the others. When someone asks for a broad review of the UI (user
+interface, the screens, buttons and forms a person uses), run
 the first three and say which found what.
 
 ---
@@ -48,12 +51,14 @@ the first three and say which found what.
 
 | Tool | Request it answers |
 |---|---|
-| `audit_interface` (`POST /v1/audit`) | "Audit this HTML against the Laws of UX", for all eight laws or a named subset. Returns findings with law, severity, line and message, and the error and warning counts. |
+| `audit_interface` (`POST /v1/audit`, a route of the HTTP (HyperText Transfer Protocol, the protocol a browser uses to ask a server for a page) API (application programming interface, addresses another program calls to use this tool)) | "Audit this HTML against the Laws of UX", for all eight laws or a named subset. Returns findings with law, severity, line and message, and the error and warning counts. |
 | `list_laws` (`GET /v1/laws`) | "Which laws can you check?", and the exact slugs to pass before narrowing an audit. |
 | `health` (`GET /health`) | "Is the server up?" Only for diagnosing a connection. |
 | `sprezzature-ux-laws`, `sprezzature-ux-laws-audit` | Audit files or directories on disk, with `--json`, `--strict`, `--only`, `--ignore`; repair four laws with `--fix`, preview with `--fix --dry-run`. |
 | `sprezzature-ux-laws-mcp` | Start the HTTP app with the MCP endpoint at `/mcp`, so a host can call the three tools above. |
+| `sprezzature-ux-laws-skill` | "Is the skill I read up to date?" Reports whether the copy under `~/.claude/skills` matches the installed package; `--install` copies the shipped one there (`--agent opencode` for `~/.opencode/skills`). |
 | `audit_html`, `audit_file`, `fix_file` (Python) | The same audit and repair from inside a build step. |
+| `skill_path()` (Python) | Where the package keeps its skill, `sprezzature_ux_laws/skill/`. |
 
 ---
 
@@ -73,12 +78,16 @@ This table is for reading the findings back to a user in their own terms.
 | `selective-attention` | a status `<span>` signalled by colour only | warning | "I never saw that", "the warning is invisible" |
 | `tesler` | `HH:MM` times without a timezone | warning | "what time is that, mine or theirs?" |
 
-On a page that does not use Tailwind CSS, `fitts` and `aesthetic-usability` each return
+On a page that does not use Tailwind CSS (Cascading Style Sheets, the rules that give a
+web page its colours, fonts and layout), `fitts` and `aesthetic-usability` each return
 one `info` finding for the document instead of per-element warnings.
 
 ---
 
 ## What to call, on every surface
+
+The five surfaces are the library (Python), the CLI (command-line interface, a program
+you run by typing a command in a terminal), the HTTP API, MCP, and the skill.
 
 | Job | CLI | MCP tool (= `operation_id`) | HTTP route | Python |
 |---|---|---|---|---|
@@ -87,6 +96,7 @@ one `info` finding for the document instead of per-element warnings.
 | Which laws exist | `sprezzature-ux-laws --help` (lists the slugs) | `list_laws` | `GET /v1/laws` | `LAWS`, `LAW_REGISTRY` |
 | Is the server up | none | `health` | `GET /health` | none |
 | Serve the tools | `sprezzature-ux-laws-mcp` | none | none | none |
+| Install or refresh the skill | `sprezzature-ux-laws-skill --install` | none | none | `skill_path` |
 
 Repair is a command-line and Python job only: no route or MCP tool writes files.
 

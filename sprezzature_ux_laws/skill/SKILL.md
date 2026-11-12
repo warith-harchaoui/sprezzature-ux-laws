@@ -27,7 +27,7 @@ metadata:
   source: https://lawsofux.com/
 ---
 
-> The deterministic tools below now ship as the standalone package [`sprezzature-ux-laws`](https://github.com/warith-harchaoui/sprezzature-ux-laws) (`pip install`), invoked as `sprezzature-ux-laws …`. The `scripts/` folder has moved out of this monorepo; the SKILL.md here stays as the agentic contract.
+> This skill ships inside the package [`sprezzature-ux-laws`](https://github.com/warith-harchaoui/sprezzature-ux-laws), at `sprezzature_ux_laws/skill/`, beside the deterministic tools it calls (`sprezzature-ux-laws …`). `sprezzature-ux-laws-skill` reports whether the copy an agent reads is in step with the installed package; `sprezzature-ux-laws-skill --install` copies it into `~/.claude/skills` (`--agent opencode` for `~/.opencode/skills`).
 
 # sprezzature-ux-laws — make and audit by the Laws of UX (user experience, how using a product feels: quick and clear, or slow and confusing)
 
@@ -178,20 +178,22 @@ warnings pass and only fail on real errors (Hick, Jakob).
   trigger → action → Tailwind hook. Reads as both a make-time
   playbook and an audit-time refusal list. Load it on demand; not
   preloaded.
+- `references/triggers.md` — the exhaustive trigger catalogue, generated
+  from the hub; read it when unsure whether a request belongs here.
 
 ## Surfaces
 
-Shipped by the standalone [`sprezzature-ux-laws`](https://github.com/warith-harchaoui/sprezzature-ux-laws)
-package, not by this monorepo. One `pip install sprezzature-ux-laws` brings
-all of them:
+Shipped by the [`sprezzature-ux-laws`](https://github.com/warith-harchaoui/sprezzature-ux-laws)
+package, this skill included. One `pip install sprezzature-ux-laws` brings
+all five:
 
 | Surface | Name | Notes |
 |---|---|---|
-| Library | `import sprezzature_ux_laws` | `audit_html`, `audit_file`, `fix_file`, `LAWS`, `LAW_REGISTRY`, `Finding` |
-| CLI (command-line interface, a program you run by typing a command in a terminal) | `sprezzature-ux-laws` (click), `sprezzature-ux-laws-audit` (per-tool script) | Same handler and flags: `--json`, `--strict`, `--only`, `--ignore`, `--fix`, `--dry-run` |
-| HTTP (HyperText Transfer Protocol, the language a browser and a server speak each time a page loads) API (application programming interface, the requests one program can send another, such as audit this page) | `uvicorn sprezzature_ux_laws.api:app` | `GET /health`, `GET /v1/laws`, `POST /v1/audit` (400 on an unknown law); Docker and compose in the repository |
+| Library | `import sprezzature_ux_laws` | `audit_html`, `audit_file`, `fix_file`, `LAWS`, `LAW_REGISTRY`, `Finding`, `skill_path()` |
+| CLI (command-line interface, a program you run by typing a command in a terminal) | `sprezzature-ux-laws` (click), `sprezzature-ux-laws-audit` (per-tool script) | Same handler and flags: `--json`, `--strict`, `--only`, `--ignore`, `--fix`, `--dry-run`, `-V` |
+| HTTP (HyperText Transfer Protocol, the language a browser and a server speak each time a page loads) API (application programming interface, the requests one program can send another, such as audit this page) | `uvicorn sprezzature_ux_laws.api:app` | `GET /health`, `GET /v1/laws`, `POST /v1/audit` (400 on an unknown law); `Dockerfile` and `docker-compose.yml` in the repository, serving it with the MCP endpoint on port 8000 |
 | MCP | `sprezzature-ux-laws-mcp` (endpoint `/mcp`) | Tools = `operation_id`s: `health`, `list_laws`, `audit_interface`. No tool writes files: `--fix` is CLI and library only |
-| Skill | this file | Routing rules in the package's `TRIGGERS.md` |
+| Skill | this folder, `sprezzature_ux_laws/skill/` | `sprezzature-ux-laws-skill` reports whether the installed copy is in step; `--install` copies it into `~/.claude/skills` (`--agent opencode` for `~/.opencode/skills`); `--path` prints where pip put it. Trigger catalogue in `references/triggers.md`, routing rules in the repository's `TRIGGERS.md` |
 
 ## Companion skills
 

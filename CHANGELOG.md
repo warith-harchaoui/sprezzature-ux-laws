@@ -4,6 +4,38 @@ All notable changes to sprezzature-ux-laws are documented here.
 
 ## [Unreleased]
 
+### Added
+
+- **The skill ships inside the package.** `sprezzature_ux_laws/skill/` holds the
+  `SKILL.md` an agent reads and its `references/` (the thirty laws, the trigger
+  catalogue), so one `pip install` carries all five surfaces: library, command line,
+  HTTP (HyperText Transfer Protocol, the protocol a browser uses to ask a server for a
+  page) API (application programming interface, addresses another program calls to use
+  this tool), MCP (Model Context Protocol, the protocol
+  through which AI agents call tools in English) server, and skill. Until now it
+  lived only in the sprezzature hub.
+- **`sprezzature-ux-laws-skill`**, a fourth command: it reports whether the copy under
+  `~/.claude/skills` is in step with the installed package, `--install` copies the
+  shipped one there (moving an older copy to `skills-superseded/`), `--agent opencode`
+  targets `~/.opencode/skills`, and `--path` prints where pip put it.
+- **`sprezzature_ux_laws.skill_path()`** returns that folder.
+
+### Docs
+
+- README and LISEZMOI: the five surfaces and the four installed commands are listed;
+  the "Agent skill" section said the skill shipped from the hub, and now documents
+  `sprezzature-ux-laws-skill`; `skill_path` is among the exports; `-V` and the exit `2`
+  on a non-numeric port of `sprezzature-ux-laws-mcp` are stated.
+- SKILL.md: the banner and the surfaces table still said the skill lived in a monorepo
+  and the tools had moved out; they now say it ships in the package, and how to install it.
+- TRIGGERS.md: `sprezzature-ux-laws-skill` and `skill_path` added to the tool tables;
+  acronyms defined at first use.
+- CODING.md said `import sprezzature_ux_laws` never needs click; since `_skill.py`
+  it does, and says so. CONTRIBUTING.md: the CI (continuous integration, the automatic checks
+  GitHub runs on every push) runs ruff and pytest but
+  not mypy, which the pre-push hook runs; an editable install must be redone to pick up
+  a new command; a new law also goes in the skill's own reference and table.
+
 ## [1.4.3] — 2026-11-08
 
 ### Fixed

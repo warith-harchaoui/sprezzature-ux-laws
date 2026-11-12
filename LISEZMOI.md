@@ -106,10 +106,14 @@ laisse passer.
 pip install sprezzature-ux-laws
 ```
 
-Une seule installation donne toutes les surfaces : la bibliothèque, les deux
-commandes, l'API (application programming interface, des adresses qu'un autre programme appelle pour se servir de l'outil sans personne qui clique)
-HTTP (HyperText Transfer Protocol, le protocole par lequel un navigateur demande une page à un serveur, et un programme des données) et le serveur MCP
-(Model Context Protocol, le protocole par lequel les agents IA appellent des outils en français). Les dépendances de base sont click (la ligne
+Une seule installation donne les cinq surfaces : la bibliothèque, la ligne de
+commande, l'API (application programming interface, des adresses qu'un autre programme appelle pour se servir de l'outil sans personne qui clique)
+HTTP (HyperText Transfer Protocol, le protocole par lequel un navigateur demande une page à un serveur, et un programme des données), le serveur MCP
+(Model Context Protocol, le protocole par lequel les agents IA appellent des outils en français) et le skill pour agent. Elle installe
+quatre commandes : `sprezzature-ux-laws` et `sprezzature-ux-laws-audit` (l'auditeur),
+`sprezzature-ux-laws-mcp` (le serveur) et `sprezzature-ux-laws-skill` (le skill). Le
+`Dockerfile` et le `docker-compose.yml` qui servent l'API dans un conteneur sont dans le
+dépôt, pas dans le paquet. Les dépendances de base sont click (la ligne
 de commande), FastAPI, uvicorn, fastapi-mcp et mcp. Il n'y a aucun extra de
 fonctionnalité. Le seul extra, `[dev]`, est l'outillage de test (pytest, ruff, mypy,
 httpx2).
@@ -199,9 +203,10 @@ appliquees, non_corrigeables, restants = ux.fix_file(Path("page.html"), laws=set
 ```
 
 Le paquet exporte `audit_html`, `audit_file`, `fix_file`, `Finding`, `Walker`,
-`Element`, `LAW_REGISTRY`, `LAWS` et `FITTS_FIX_TOKEN`. `ux.LAWS` est le tuple des
-huit identifiants, dans l'ordre où les vérifications tournent : la ligne de commande
-valide `--only` contre ce même registre, et l'API HTTP le publie.
+`Element`, `LAW_REGISTRY`, `LAWS`, `FITTS_FIX_TOKEN` et `skill_path`. `ux.LAWS` est le
+tuple des huit identifiants, dans l'ordre où les vérifications tournent : la ligne de
+commande valide `--only` contre ce même registre, et l'API HTTP le publie.
+`ux.skill_path()` rend le dossier du skill pour agent que livre le paquet (voir plus bas).
 
 ## API HTTP
 
@@ -246,15 +251,38 @@ sprezzature-ux-laws-mcp --host 0.0.0.0 --port 9000
 ```
 
 `--host` et `--port` prennent par défaut `SPREZZATURE_UX_LAWS_HOST` et
-`SPREZZATURE_UX_LAWS_PORT` quand ces variables sont définies.
+`SPREZZATURE_UX_LAWS_PORT` quand ces variables sont définies ; un port qui n'est pas un
+nombre est une erreur d'usage (code `2`). `-V` affiche la version.
 `python -m sprezzature_ux_laws.mcp` est équivalent.
 
 ## Skill pour agent
 
-Le skill qui dit à un agent quand appliquer ces lois, `sprezzature-ux-laws`, est livré
-depuis le dépôt central [sprezzature](https://github.com/warith-harchaoui/sprezzature).
+La cinquième surface est le skill : le dossier qu'un agent comme Claude Code ou
+OpenCode lit pour savoir quand appliquer ces lois et quelle commande lancer. Il est
+livré dans le paquet, sous `sprezzature_ux_laws/skill/` : un `SKILL.md`, plus
+`references/laws-of-ux.md` (les trente lois, avec leurs sources) et
+`references/triggers.md` (le catalogue des déclencheurs). L'agent lit sa propre copie,
+pas celle que pip a installée, si bien qu'une commande garde les deux au même pas.
+
+```bash
+sprezzature-ux-laws-skill                             # la copie installée est-elle à jour ?
+sprezzature-ux-laws-skill --install                   # la copier dans ~/.claude/skills
+sprezzature-ux-laws-skill --install --agent opencode  # dans ~/.opencode/skills plutôt
+sprezzature-ux-laws-skill --path                      # où pip l'a mise
+```
+
+Sans `--install`, la commande se contente de dire quels fichiers diffèrent, et sort avec
+`0` dans les deux cas (`1` seulement quand la construction ne livre aucun skill).
+`--install` déplace d'abord une copie plus ancienne dans `skills-superseded/`, à côté du
+dossier des skills : un dossier laissé à l'intérieur serait lu lui-même comme un skill.
+Depuis Python, `sprezzature_ux_laws.skill_path()` rend le dossier livré.
+`sprezzature-ux-laws` est une commande unique, pas un groupe : il n'existe donc pas de
+`sprezzature-ux-laws skill`.
+
 Les règles d'aiguillage et le tableau des outils pour les agents sont dans
-[`TRIGGERS.md`](TRIGGERS.md).
+[`TRIGGERS.md`](TRIGGERS.md). Le dépôt central
+[sprezzature](https://github.com/warith-harchaoui/sprezzature) rassemble les skills de
+toutes les briques de la suite.
 
 ## Périmètre assumé
 

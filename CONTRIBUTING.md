@@ -8,9 +8,12 @@ cd sprezzature-ux-laws
 pip install -e . -r requirements-dev.txt
 ```
 
-This is the install the CI runs: the package itself in editable mode, plus
+This is the install the CI (continuous integration, the automatic checks GitHub runs on
+every push) runs: the package itself in editable mode, plus
 the test toolchain listed in `requirements-dev.txt` (pytest, ruff, mypy,
-httpx2). `pip install -e ".[dev]"` installs the same toolchain.
+httpx2). `pip install -e ".[dev]"` installs the same toolchain. Re-run it after a
+pull that adds a command: an editable install only learns the console scripts
+(`sprezzature-ux-laws`, `-audit`, `-mcp`, `-skill`) that existed when it was made.
 
 ## Tests
 
@@ -30,8 +33,10 @@ ruff check .
 
 ## Types
 
-The pre-push hook also runs mypy, in two invocations because `scripts/` imports its
-siblings by bare name:
+The CI runs ruff and pytest, not mypy. The pre-push hook (`.githooks/pre-push`,
+enabled with `git config core.hooksPath .githooks`) runs ruff, then mypy, then
+pytest; mypy runs in two invocations because `scripts/` imports its siblings by
+bare name:
 
 ```bash
 mypy sprezzature_ux_laws
@@ -50,12 +55,15 @@ mypy scripts
    trigger the finding, one that should not.
 5. Add a one-line note for it in `_LAW_NOTES` in
    `sprezzature_ux_laws/api.py`, which `GET /v1/laws` and the `list_laws`
-   MCP tool serve.
+   MCP (Model Context Protocol, the protocol through which AI agents call
+   tools in English) tool serve.
 6. Document the law in the tables of `README.md`, `LISEZMOI.md` and
    `TRIGGERS.md`, add its name to the "mechanically-detectable violations"
    list in `references/laws-of-ux.md` (a test compares that list with
    `LAW_REGISTRY`), and add a sourced entry there if the law is not already
-   covered.
+   covered. The skill carries its own copy of that reference, in
+   `sprezzature_ux_laws/skill/references/laws-of-ux.md`, and its own table of
+   checks in `sprezzature_ux_laws/skill/SKILL.md`: update both.
 
 ## Code standards
 
@@ -85,4 +93,4 @@ External contributions are welcome. Open an issue or pull request on GitHub.
 
 ## License
 
-[BSD-3-Clause](LICENSE).
+The [BSD (Berkeley Software Distribution) 3-Clause licence](LICENSE), a permissive open-source licence.
