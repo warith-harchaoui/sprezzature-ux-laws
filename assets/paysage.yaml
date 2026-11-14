@@ -65,7 +65,7 @@ approaches:
     axis_1: 2.9438
     axis_2: 3.3275
   role: best
-  color: '#FF3B30'
+  color: '#FF383C'
   attributes:
     Gratuit ou open source: 5.0
     Rapidité en intégration continue: 5.0
@@ -128,7 +128,7 @@ approaches:
     axis_1: 2.9438
     axis_2: 3.1492
   role: right
-  color: '#007AFF'
+  color: '#0088FF'
   attributes:
     Gratuit ou open source: 5.0
     Rapidité en intégration continue: 5.0
@@ -233,7 +233,7 @@ approaches:
     axis_1: 2.0425
     axis_2: 3.3275
   role: top
-  color: '#AF52DE'
+  color: '#CB30E0'
   attributes:
     Gratuit ou open source: 5.0
     Rapidité en intégration continue: 5.0
@@ -422,7 +422,7 @@ approaches:
     axis_1: -1.4167
     axis_2: -3.3275
   role: worst
-  color: '#A52A2A'
+  color: '#AC7F5E'
   attributes:
     Gratuit ou open source: 1.0
     Rapidité en intégration continue: 1.0
