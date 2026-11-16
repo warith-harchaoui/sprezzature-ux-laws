@@ -734,6 +734,7 @@ def check_miller(path: str, lines: list[str]) -> list[Finding]:
     """
     out: list[Finding] = []
     in_script: bool = False
+    in_tag: bool = False
     in_style: bool = False
     # A comment is not visible text either. One on a single line goes with the
     # tags below; one over several lines has to be blanked first, keeping its
@@ -753,10 +754,26 @@ def check_miller(path: str, lines: list[str]) -> list[Finding]:
             if "</style" in low:
                 in_style = False
             continue
-        # Strip attribute values so class hashes don't trigger.
-        stripped: str = re.sub(r'(?:class|id|href|src)="[^"]*"', "", raw)
+        # Strip every attribute value, not four of them: on a tag written
+        # over several lines, ``data-src-academic="…/surface3d.svg"`` sat on a
+        # line of its own and was read as visible text (sprezzature.ai's
+        # French gallery, 2026-11-16).
+        stripped: str = re.sub(r"""[\w:.-]+\s*=\s*(?:"[^"]*"|'[^']*')""", "", raw)
+        # A tag still open from an earlier line: everything up to its ``>``
+        # is markup, and the whole line is when it does not close here.
+        if in_tag:
+            close = stripped.find(">")
+            if close < 0:
+                continue
+            stripped = stripped[close + 1 :]
+            in_tag = False
         # Strip HTML tags themselves; leave only visible text.
         visible: str = re.sub(r"<[^>]+>", " ", stripped)
+        # A tag opened on this line and closed on a later one.
+        open_at = visible.rfind("<")
+        if open_at >= 0 and ">" not in visible[open_at:]:
+            visible = visible[:open_at]
+            in_tag = True
         for m in RE_LONG_RUN.finditer(visible):
             run: str = m.group(0)
             # Miller's chunking advice targets codes / IDs / phone

@@ -4,6 +4,13 @@ All notable changes to sprezzature-ux-laws are documented here.
 
 ## [Unreleased]
 
+
+### Fixed
+
+- **Miller's rule no longer reads the attributes of a tag written over several lines.** It blanked
+  four attributes and removed each tag that opened and closed on one line, so on a wrapped tag
+  every other attribute (`data-src-academic="…/surface3d.svg"`) was read as visible text. All
+  attribute values are blanked now, and the continuation lines of an open tag are markup.
 ## [1.5.0] — 2026-11-12
 
 ### Added
