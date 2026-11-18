@@ -88,7 +88,7 @@ _LAW_NOTES: dict[str, str] = {
 }
 
 app = FastAPI(
-    title="Sprezzature UX Laws API",
+    title="sprezzature UX Laws API",
     description=(
         "HTTP surface for sprezzature-ux-laws: audit an interface against "
         "eight laws of UX — Hick, Miller, Fitts, Jakob, Tesler and friends."

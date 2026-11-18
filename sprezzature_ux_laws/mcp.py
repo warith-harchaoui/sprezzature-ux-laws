@@ -88,7 +88,7 @@ else:
         app,
         name="sprezzature-ux-laws",
         description=(
-            "Sprezzature UX Laws MCP tools: audit an interface against eight laws "
+            "sprezzature UX Laws MCP tools: audit an interface against eight laws "
             "of UX — Hick, Miller, Fitts, Jakob, Tesler and friends."
         ),
         include_tags=["meta", "actions"],
