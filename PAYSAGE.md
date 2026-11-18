@@ -162,10 +162,8 @@ capture, et demande à un modèle multimodal de juger l'ergonomie depuis un pers
 déclaré. Il obtient ce qu'aucune lecture de texte n'obtient : l'encombrement, la
 hiérarchie visuelle, le fait que l'action principale ait l'air principale. Il coûte aussi
 une installation de Chrome, un modèle, et le déterminisme, soit les trois choses que ce
-paquet est fait de refuser. La nuance : la suite possède déjà le mécanisme, dans la
-boucle Ralph Eyeball de `sprezzature-figures`, qui fait tourner un modèle local hors
-ligne. L'énoncé honnête n'est donc pas « on ne peut pas » mais « pas dans la brique dont
-tout l'argument est qu'un crochet de pré-commit peut se la payer ».
+paquet est fait de refuser. L'énoncé honnête n'est donc pas « on ne peut pas » mais « pas
+dans la brique dont tout l'argument est qu'un crochet de pré-commit peut se la payer ».
 
 ## Comment le domaine se découpe
 

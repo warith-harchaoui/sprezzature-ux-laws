@@ -146,10 +146,8 @@ about last month.
 and asks a multimodal model to judge usability from a declared persona. It gets what no
 text scan can: crowding, visual hierarchy, whether the primary action looks primary. It
 also costs a Chrome install, a model, and determinism, which are the three things this
-package is built out of refusing. The caveat is that the suite already owns the
-mechanism, in `sprezzature-figures`'s Ralph Eyeball Loop, which runs a local model
-offline. So the honest statement is not "we cannot" but "not in the brick whose whole
-selling point is that a pre-commit hook can afford it".
+package is built out of refusing. So the honest statement is not "we cannot" but "not in
+the brick whose whole selling point is that a pre-commit hook can afford it".
 
 ## How the field divides
 

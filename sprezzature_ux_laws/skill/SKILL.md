@@ -98,7 +98,7 @@ sprezzature-ui starter components.
 | Tesler's Law | warning | `HH:MM` time string with no timezone token (`UTC`, `+02:00`, `Europe/Paris`, `Z`, a named time zone) within 40 chars | Times in a duration context (`duration`, `elapsed`, `remaining`, `data-ra-*`, a range input, `<progress>`, `<audio>`, `<video>`) are skipped; other durations ("Took 14:30") still fire. |
 | Doherty Threshold | — | Out of scope for static analysis. Use Lighthouse + a real device. | — |
 
-## Visual laws need the Ralph Eyeball Loop
+## Visual laws need a look at the render
 
 The static parser above is the fast first pass: it catches what is decidable
 from source (a fake button, a missing focus ring, an over-long nav). But most of
@@ -106,21 +106,20 @@ the Laws of UX are about how the rendered interface *looks and feels*, which no
 parser can see: visual hierarchy and emphasis (Von Restorff, aesthetic-usability),
 real target size and spacing (Fitts), perceived density and grouping (Hick,
 Miller, proximity), and whether the eye lands where you intended (selective
-attention). Judge those by rendering and looking, via the
-[Ralph Eyeball Loop](../sprezzature-figures/references/ralph-eyeball-loop.md):
+attention). Judge those by rendering and looking:
 
 - **Make.** After emitting a screen, render it to a PNG
-  (`python -m sprezzature_figures_scripts.ralph_eyeball_loop page.html`), look at it, and ask
+  (a headless browser screenshot will do), look at it, and ask
   the laws out loud: is the primary action the most prominent thing? are tap
   targets comfortable? is any group past ~7 items? Fix the source and re-render
   until it holds.
 - **Audit.** Do the same to someone else's page: the static report lists the
   decidable violations; the rendered look is where you assess the visual laws
   the parser marks "—" or can only guess at. Report both, and say which came
-  from the parser and which from the eyeball pass.
+  from the parser and which from looking at the render.
 
 So the two halves compose: the deterministic parser for the source-decidable
-laws, the Ralph Eyeball Loop for the visual ones.
+laws, a look at the render for the visual ones.
 
 ## Examples
 
