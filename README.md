@@ -276,4 +276,4 @@ substitute for design review.
 
 ## License
 
-The three-clause Berkeley Software Distribution license, BSD-3-Clause, a permissive open-source license: anyone may reuse the code, even commercially, if they keep this notice: © Warith HARCHAOUI. Part of the [sprezzature](https://sprezzature.ai/) toolkit.
+The three-clause Berkeley Software Distribution license, BSD-3-Clause, a permissive open-source license: anyone may reuse the code, even commercially, if they keep this notice: © Warith Harchaoui. Part of the [sprezzature](https://sprezzature.ai/) toolkit.

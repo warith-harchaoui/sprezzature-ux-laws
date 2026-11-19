@@ -294,5 +294,5 @@ un verrou rapide, pas un substitut à une revue de design.
 
 ## Licence
 
-La licence Berkeley Software Distribution à trois clauses, BSD-3-Clause, une licence libre permissive : chacun peut réutiliser le code, même commercialement, à condition de garder cette mention : © Warith HARCHAOUI. Fait partie de la boîte à outils
+La licence Berkeley Software Distribution à trois clauses, BSD-3-Clause, une licence libre permissive : chacun peut réutiliser le code, même commercialement, à condition de garder cette mention : © Warith Harchaoui. Fait partie de la boîte à outils
 [sprezzature](https://sprezzature.ai/).

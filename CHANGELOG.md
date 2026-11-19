@@ -4,8 +4,12 @@ All notable changes to sprezzature-ux-laws are documented here.
 
 ## [Unreleased]
 
+## [1.5.1] — 2026-11-19
+
+
 ### Changed
 
+- The licence line reads `Copyright (c) 2026, Warith Harchaoui` in LICENSE, README.md and LISEZMOI.md; the licence is unchanged, BSD 3-Clause.
 - The project name is written `sprezzature`, all lowercase, even at the start of a sentence, in every displayed string and document (API title, MCP server description, comments, examples). Code identifiers such as `SprezzatureCommand` and `SPREZZATURE_*` do not change.
 
 
@@ -15,6 +19,7 @@ All notable changes to sprezzature-ux-laws are documented here.
   four attributes and removed each tag that opened and closed on one line, so on a wrapped tag
   every other attribute (`data-src-academic="…/surface3d.svg"`) was read as visible text. All
   attribute values are blanked now, and the continuation lines of an open tag are markup.
+
 ## [1.5.0] — 2026-11-12
 
 ### Added
