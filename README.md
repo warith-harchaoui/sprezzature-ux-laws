@@ -21,6 +21,8 @@ at the cost of catching only the fraction of each law's violations that a text s
 see. The full, sourced definition of each law lives in
 [`references/laws-of-ux.md`](https://github.com/warith-harchaoui/sprezzature-ux-laws/blob/main/references/laws-of-ux.md).
 
+Drop a [⭐️](https://github.com/warith-harchaoui/sprezzature-ux-laws) on GitHub if my help deserves it.
+
 ## How it works
 
 ![Flow diagram. At the top, HTML source feeds two lanes. The left lane audits: it resolves what a single screen shows from the Tailwind display classes, reports the worse of the phone count and the desktop count, and decides eight named laws, returning findings that exit non-zero on an error. The right lane makes: it applies the four mechanical repairs. Both meet in one outcome, a screen whose measurable mistakes are gone.](https://raw.githubusercontent.com/warith-harchaoui/sprezzature-ux-laws/main/assets/how-it-works.svg)

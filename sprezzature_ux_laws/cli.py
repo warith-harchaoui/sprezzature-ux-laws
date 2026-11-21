@@ -35,6 +35,7 @@ from sprezzature_ux_laws import LAWS
 @click.command(
     name="sprezzature-ux-laws",
     context_settings={"help_option_names": ["-h", "--help"]},
+    epilog="⭐️ on GitHub: https://github.com/warith-harchaoui/sprezzature-ux-laws",
     help=(
         "Static auditor for the canonical Laws of UX (Jon YABLONSKI, "
         "lawsofux.com): the fraction of each law that is decidable from "

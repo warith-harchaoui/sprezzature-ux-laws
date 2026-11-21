@@ -10,6 +10,8 @@
 Un auditeur statique des **Laws of UX (user experience, la manière dont une interface se vit à l'usage, comme le temps passé à trouver le bon bouton)**,
 les lois de l'ergonomie cognitive, pour du HTML.
 
+Laissez une [⭐️](https://github.com/warith-harchaoui/sprezzature-ux-laws) sur GitHub si mon aide le mérite.
+
 Les Laws of UX sont des heuristiques nommées, issues de la psychologie
 et de la recherche en interaction homme-machine, rassemblées par Jon
 YABLONSKI sur [lawsofux.com](https://lawsofux.com/). La loi de Hick, par
